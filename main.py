@@ -56,7 +56,7 @@ def run_create_thing_on_minio_action_service(ctx):
     consumer = KafkaConsumer(
         topic,
         bootstrap_servers=kafka_servers,
-        auto_offset_reset='smallest',
+        auto_offset_reset='earliest',
         enable_auto_commit=False,
         group_id=kafka_group_id,
         value_deserializer=lambda x: loads(x.decode('utf-8'))

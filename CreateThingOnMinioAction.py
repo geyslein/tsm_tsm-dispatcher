@@ -14,14 +14,6 @@ class CreateThingOnMinioAction(AbstractAction):
     def __init__(self):
         super().__init__()
 
-        # Python SDK minio client
-        self.mc = Minio(
-            "localhost:9000",
-            secure=False,
-            access_key="minio",
-            secret_key="minio123",
-        )
-
         # Custom minio client wrapper
         self.mcw = Mc(
             "localhost:9000",
@@ -69,11 +61,10 @@ class CreateThingOnMinioAction(AbstractAction):
 
         # Create bucket
         bucket_name = thing.slug()
-        if not self.mc.bucket_exists(bucket_name):
+        if not self.mcw.bucket_exists(bucket_name):
             try:
-                self.mc.make_bucket(bucket_name, object_lock=True)
+                self.mcw.make_locked_bucket(bucket_name)
             except Exception as e:
                 raise ValueError('Unable to create bucket "{}": {}'.format(bucket_name, e))
         # set bucket retention config
-        lock_config = ObjectLockConfig(GOVERNANCE, 100, YEARS)
-        self.mc.set_object_lock_config(bucket_name, lock_config)
+        self.mcw.set_bucket_100y_retention(bucket_name)

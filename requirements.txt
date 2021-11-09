@@ -1,5 +1,4 @@
 kafka-python>=2.0.2
 click>=8.0.3
-minio-cli-wrapper>=0.0.2
-minio>=7.1.1
+minio-cli-wrapper @ git+ssh://git@git.ufz.de/rdm-software/timeseries-management/minio-cli-wrapper.git@master
 pwgen>=0.8.2.post0
