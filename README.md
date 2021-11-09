@@ -4,7 +4,6 @@ TSM Dispatcher is a service to handle a collection of actions when they are trig
 
 Requirements:
 ```
-pip install git+ssh://git@git.ufz.de/rdm-software/timeseries-management/minio-cli-wrapper.git
 pip install -r requirements.txt
 ```
 
@@ -18,7 +17,7 @@ python main.py --topic thing_created -k kafka:9092 produce "{\"uuid\":\"057d8bba
 
 ## Create *thing* on MinIO
 ```bash
-python main.py --topic thing_created -k kafka:9092 -v run-create-thing-on-minio-action-service
+python main.py --topic thing_created --kafka-server kafka:9092 --verbose run-create-thing-on-minio-action-service --minio_secure false localhost:9000 minio minio123
 ```
 
 # @Todo

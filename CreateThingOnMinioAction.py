@@ -1,3 +1,5 @@
+import logging
+
 from pwgen import pwgen
 from minio import Minio
 from minio.commonconfig import GOVERNANCE
@@ -11,15 +13,15 @@ from thing import Thing
 
 class CreateThingOnMinioAction(AbstractAction):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, topic, kafka_servers, kafka_group_id, minio_settings: dict):
+        super().__init__(topic, kafka_servers, kafka_group_id)
 
         # Custom minio client wrapper
         self.mcw = Mc(
-            "localhost:9000",
-            secure=False,
-            access_key="minio",
-            secret_key="minio123"
+            minio_settings.get('minio_url'),
+            secure=minio_settings.get('minio_secure', True),
+            access_key=minio_settings.get('minio_access_key'),
+            secret_key=minio_settings.get('minio_secure_key')
         )
 
     def act(self, message: dict):

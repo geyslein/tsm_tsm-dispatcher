@@ -45,33 +45,39 @@ def cli(ctx, topic, kafka_servers, kafka_group_id, verbose):
 
 
 @cli.command()
+@click.argument(
+    'minio_url',
+    type=str,
+    envvar='MINIO_URL'
+)
+@click.argument('minio_access_key', type=str, envvar='MINIO_ACCESS_KEY')
+@click.argument('minio_secure_key', type=str, envvar='MINIO_SECURE_KEY')
+@click.option(
+    '--minio_secure',
+    type=bool,
+    default=True,
+    show_envvar=True,
+    envvar='MINIO_SECURE',
+    help='Use to disable TLS ("HTTPS://") for testing. Do not disable it on production!'
+)
 @click.pass_context
-def run_create_thing_on_minio_action_service(ctx):
+def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, minio_secure_key,
+                                             minio_secure):
     topic = ctx.parent.params['topic']
     kafka_servers = ctx.parent.params['kafka_servers']
     kafka_group_id = ctx.parent.params['kafka_group_id']
 
     logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
 
-    consumer = KafkaConsumer(
-        topic,
-        bootstrap_servers=kafka_servers,
-        auto_offset_reset='earliest',
-        enable_auto_commit=False,
-        group_id=kafka_group_id,
-        value_deserializer=lambda x: loads(x.decode('utf-8'))
-    )
-
-    action = CreateThingOnMinioAction()
+    action = CreateThingOnMinioAction(topic, kafka_servers, kafka_group_id, minio_settings={
+        'minio_url': minio_url,
+        'minio_access_key': minio_access_key,
+        'minio_secure_key': minio_secure_key,
+        'minio_secure': minio_secure
+    })
 
     # loop while waiting for messages
-    for message in consumer:
-        try:
-            action.act(message.value)
-        except Exception as e:
-            logging.critical(e)
-
-        consumer.commit()
+    action.run_loop()
 
 
 @cli.command()
