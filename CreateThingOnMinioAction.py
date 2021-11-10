@@ -1,9 +1,4 @@
-import logging
-
 from pwgen import pwgen
-from minio import Minio
-from minio.commonconfig import GOVERNANCE
-from minio.objectlockconfig import ObjectLockConfig, YEARS
 
 from AbstracAction import AbstractAction
 from minio_cli_wrapper.mc import Mc
@@ -12,7 +7,6 @@ from thing import Thing
 
 
 class CreateThingOnMinioAction(AbstractAction):
-
     def __init__(self, topic, kafka_servers, kafka_group_id, minio_settings: dict):
         super().__init__(topic, kafka_servers, kafka_group_id)
 
