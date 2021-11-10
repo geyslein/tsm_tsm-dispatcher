@@ -75,7 +75,7 @@ integration-test:
 add-release-tags:
   stage: release
   rules:
-    - if: '$CI_COMMIT_REF_SLUG == "master"'
+    - if: '$CI_COMMIT_REF_SLUG == "main"'
       when: on_success
   image:
     name: gcr.io/go-containerregistry/crane:debug
