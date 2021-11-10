@@ -29,6 +29,10 @@ RUN apt-get -y update \
       curl \
       unzip
 
+# Install minio mc client
+RUN curl https://dl.min.io/client/mc/release/linux-amd64/mc > /usr/local/bin/mc \
+    && chmod a+x /usr/local/bin/mc
+
 # add requirements
 COPY src/requirements.txt /tmp/requirements.txt
 RUN pip install --upgrade pip \
@@ -44,6 +48,7 @@ FROM base as dist
 RUN useradd --uid 1000 -m appuser
 
 COPY --chown=appuser --from=build /root/.local /home/appuser/.local
+COPY --from=build /usr/local/bin/mc /usr/local/bin/mc
 
 # Tell docker that all future commands should run as the appuser user
 USER appuser
