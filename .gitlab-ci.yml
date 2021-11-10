@@ -62,7 +62,7 @@ build-images:
     - export BUILD_DATE=$(date)
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
   script:
-    - /kaniko/executor --build-arg BUILD_DATE="${BUILD_DATE}" --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination ${IMAGE_URL}:${CI_JOB_DATE}
+    - /kaniko/executor --force --build-arg BUILD_DATE="${BUILD_DATE}" --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination ${IMAGE_URL}:${CI_JOB_DATE}
 
 integration-test:
   stage: test
