@@ -64,3 +64,6 @@ class CreateThingOnMinioAction(AbstractAction):
                 raise ValueError('Unable to create bucket "{}": {}'.format(bucket_name, e))
         # set bucket retention config
         self.mcw.set_bucket_100y_retention(bucket_name)
+
+        # enable bucket notifications
+        self.mcw.enable_bucket_notification(bucket_name)
