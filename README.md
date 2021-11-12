@@ -29,3 +29,5 @@ python main.py --topic thing_created --kafka-server kafka:9092 --verbose run-cre
       `CreateThingOnMinioAction`
 - [ ] Maybe handle all action types in one process (with threads) or use
       something more sophisticated (Node Red?)
+- [ ] Security: No user should be able to modify bucket tags as they are
+      used to detect the things uuid
