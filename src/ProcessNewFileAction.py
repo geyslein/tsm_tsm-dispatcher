@@ -1,4 +1,8 @@
+from datetime import datetime
+
 from minio import Minio
+from minio.commonconfig import Tags
+
 from AbstracAction import AbstractAction
 
 
@@ -19,7 +23,7 @@ class ProcessNewFileAction(AbstractAction):
         filename = message['Records'][0]['s3']['object']['key']
         bucket_name = message['Records'][0]['s3']['bucket']['name']
         tags = self.minio.get_bucket_tags(bucket_name)
-        thing_id = tags.get('thing_uuid')
+        thing_uuid = tags.get('thing_uuid')
         thing_id_from_bucket_name = bucket_name[-36:]
 
         # @todo fetch thing from database to get minio creds. Or can we do this as minioadmin in
@@ -29,5 +33,9 @@ class ProcessNewFileAction(AbstractAction):
         self.minio.presigned_get_object(bucket_name, filename)
 
         # add object tag with checkpoint and timestamp
+        object_tags = Tags.new_object_tags()
+        object_tags['thing_uuid'] = thing_uuid
+        object_tags['process_new_file_action_checkpoint'] = datetime.now()
+        self.minio.set_object_tags(bucket_name, filename, object_tags)
 
         pass
