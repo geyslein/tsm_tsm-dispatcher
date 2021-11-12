@@ -1,7 +1,7 @@
 from pwgen import pwgen
 
 from AbstracAction import AbstractAction
-from minio_cli_wrapper.mc import Mc
+from minio_cli_wrapper.mc import Mc, MinIoClientError
 
 from thing import Thing
 
@@ -66,4 +66,13 @@ class CreateThingOnMinioAction(AbstractAction):
         self.mcw.set_bucket_100y_retention(bucket_name)
 
         # enable bucket notifications
-        self.mcw.enable_bucket_notification(bucket_name)
+        try:
+            self.mcw.enable_bucket_notification(bucket_name)
+        except MinIoClientError:
+            pass
+
+        # set bucked tags
+        self.mcw.set_bucket_tags(bucket_name, {
+            'thing_uuid': thing.uuid,
+            'thing_name': thing.name
+        })
