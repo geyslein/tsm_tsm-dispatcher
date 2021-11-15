@@ -54,7 +54,8 @@ class ProcessNewFileAction(AbstractAction):
             "thing_uuid": "ce2b4fb6-d9de-11eb-a236-125e5a40a845"
         }
 
-        url = 'http://localhost:5000/extractor/run'
+        # @todo get endpint from configuration
+        url = 'http://extractor:5000/extractor/run'
 
         try:
 
