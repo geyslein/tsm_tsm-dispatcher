@@ -32,14 +32,9 @@ __version__ = '0.0.1'
               show_envvar=True,
               multiple=True,
               envvar='KAFKA_SERVERS'
-              )
-@click.option('--kafka-group-id',
-              help='Group ID of Apache Kafka consumer.',
-              show_envvar=True,
-              default='MyGroupId'
 )
 @click.pass_context
-def cli(ctx, topic, kafka_servers, kafka_group_id, verbose):
+def cli(ctx, topic, kafka_servers, verbose):
 
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
@@ -66,7 +61,7 @@ def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, m
                                              minio_secure):
     topic = ctx.parent.params['topic']
     kafka_servers = ctx.parent.params['kafka_servers']
-    kafka_group_id = ctx.parent.params['kafka_group_id']
+    kafka_group_id = 'run_create_thing_on_minio_action_service'
 
     logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
 
@@ -102,7 +97,7 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
                                              minio_secure):
     topic = ctx.parent.params['topic']
     kafka_servers = ctx.parent.params['kafka_servers']
-    kafka_group_id = ctx.parent.params['kafka_group_id']
+    kafka_group_id = 'run_process_new_file_service'
 
     logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
 
