@@ -6,6 +6,7 @@ import click
 from kafka import KafkaConsumer, KafkaProducer
 
 from CreateThingOnMinioAction import CreateThingOnMinioAction
+from ProcessNewFileAction import ProcessNewFileAction
 
 __version__ = '0.0.1'
 
@@ -70,6 +71,42 @@ def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, m
     logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
 
     action = CreateThingOnMinioAction(topic, kafka_servers, kafka_group_id, minio_settings={
+        'minio_url': minio_url,
+        'minio_access_key': minio_access_key,
+        'minio_secure_key': minio_secure_key,
+        'minio_secure': minio_secure
+    })
+
+    # loop while waiting for messages
+    action.run_loop()
+
+
+@cli.command()
+@click.argument(
+    'minio_url',
+    type=str,
+    envvar='MINIO_URL'
+)
+@click.argument('minio_access_key', type=str, envvar='MINIO_ACCESS_KEY')
+@click.argument('minio_secure_key', type=str, envvar='MINIO_SECURE_KEY')
+@click.option(
+    '--minio_secure',
+    type=bool,
+    default=True,
+    show_envvar=True,
+    envvar='MINIO_SECURE',
+    help='Use to disable TLS ("HTTPS://") for testing. Do not disable it on production!'
+)
+@click.pass_context
+def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_key,
+                                             minio_secure):
+    topic = ctx.parent.params['topic']
+    kafka_servers = ctx.parent.params['kafka_servers']
+    kafka_group_id = ctx.parent.params['kafka_group_id']
+
+    logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
+
+    action = ProcessNewFileAction(topic, kafka_servers, kafka_group_id, minio_settings={
         'minio_url': minio_url,
         'minio_access_key': minio_access_key,
         'minio_secure_key': minio_secure_key,
