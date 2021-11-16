@@ -1,3 +1,4 @@
+psycopg2-binary~=2.9.2
 kafka-python>=2.0.2
 click>=8.0.3
 pwgen>=0.8.2.post0

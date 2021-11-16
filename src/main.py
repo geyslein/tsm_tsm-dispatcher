@@ -7,6 +7,7 @@ from kafka import KafkaConsumer, KafkaProducer
 
 from CreateThingOnMinioAction import CreateThingOnMinioAction
 from ProcessNewFileAction import ProcessNewFileAction
+from CreateThingInDatabaseAction import CreateThingInDatabaseAction
 
 __version__ = '0.0.1'
 
@@ -35,6 +36,8 @@ __version__ = '0.0.1'
 )
 @click.pass_context
 def cli(ctx, topic, kafka_servers, verbose):
+
+    # @todo remove topic from cli parameters and set it static per action class
 
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
@@ -73,6 +76,25 @@ def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, m
     })
 
     # loop while waiting for messages
+    action.run_loop()
+
+
+@cli.command()
+@click.argument('database_url', type=str, envvar='DATABASE_URL')
+# @click.argument('database_user', type=str, envvar='DATABASE_USER')
+# @click.argument('database_pass', type=str, envvar='DATABASE_PASS')
+@click.pass_context
+def run_create_database_schema_action_service(ctx, database_url):
+    topic = ctx.parent.params['topic']  # thing_created
+    kafka_servers = ctx.parent.params['kafka_servers']
+    kafka_group_id = 'run_create_database_schema_action_service'
+
+    action = CreateThingInDatabaseAction(topic, kafka_servers, kafka_group_id, database_settings={
+        'url': database_url,
+        # 'user': database_user,
+        # 'pass': database_pass
+    })
+
     action.run_loop()
 
 
