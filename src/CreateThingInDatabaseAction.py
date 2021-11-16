@@ -27,7 +27,7 @@ class CreateThingInDatabaseAction(AbstractAction):
             self.deploy_ddl(thing)
 
         # 3. Insert thing entity
-        self.insert_thing(thing)
+        self.upsert_thing(thing)
 
     def create_user(self, thing):
         sql = "CREATE ROLE {} WITH LOGIN PASSWORD '{}'".format(thing.project.slug(),
@@ -54,8 +54,10 @@ class CreateThingInDatabaseAction(AbstractAction):
                 c.execute("SET search_path TO {}".format(thing.project.slug()))
                 c.execute(sql)
 
-    def insert_thing(self, thing):
-        sql = 'INSERT INTO thing (name, uuid, description, properties) VALUES (%s, %s, %s, %s)'
+    def upsert_thing(self, thing):
+        sql = 'INSERT INTO thing (name, uuid, description, properties) VALUES (%s, %s, %s, ' \
+              '%s) ON CONFLICT (uuid) DO UPDATE SET name = EXCLUDED.name, description = ' \
+              'EXCLUDED.description, properties = EXCLUDED.properties'
         with self.db:
             with self.db.cursor() as c:
                 c.execute("SET search_path TO {}".format(thing.project.slug()))
