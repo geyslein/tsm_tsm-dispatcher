@@ -102,7 +102,7 @@ class Thing:
     def get_instance(message: dict):
         if 'uuid' and 'name' in message.keys():
             return Thing(message.get('uuid'), message.get('name'),
-                         DataProject.get_instance(message))
+                         DataProject.get_instance(message), Database.get_instance(message))
         else:
             raise ValueError('Unable to get thing instance from message "{}"'.format(message))
 
