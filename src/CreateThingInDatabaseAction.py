@@ -37,8 +37,8 @@ class CreateThingInDatabaseAction(AbstractAction):
                 c.execute(sql)
 
     def create_schema(self, thing):
-        sql = "CREATE SCHEMA IF NOT EXISTS {} AUTHORIZATION {}".format(
-            thing.database.username, thing.database.username
+        sql = "CREATE SCHEMA IF NOT EXISTS {user} AUTHORIZATION {user}".format(
+            user=thing.database.username
         )
         with self.db:
             with self.db.cursor() as c:
@@ -52,7 +52,16 @@ class CreateThingInDatabaseAction(AbstractAction):
         with self.db:
             with self.db.cursor() as c:
                 c.execute("SET search_path TO {}".format(thing.database.username))
+                c.execute("ALTER ROLE {user} SET search_path to '{user}'".format(
+                    user=thing.database.username)
+                )
                 c.execute(sql)
+                c.execute("GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA {user} TO {user}".format(
+                    user=thing.database.username)
+                )
+                c.execute("GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA {user} TO {user}".format(
+                    user=thing.database.username)
+                )
 
     def upsert_thing(self, thing):
         sql = 'INSERT INTO thing (name, uuid, description, properties) VALUES (%s, %s, %s, ' \
