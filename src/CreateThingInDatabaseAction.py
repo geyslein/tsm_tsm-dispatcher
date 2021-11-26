@@ -30,7 +30,7 @@ class CreateThingInDatabaseAction(AbstractAction):
         self.upsert_thing(thing)
 
     def create_user(self, thing):
-        sql = "CREATE ROLE {} WITH LOGIN PASSWORD '{}'".format(thing.project.slug(),
+        sql = "CREATE ROLE {} WITH LOGIN PASSWORD '{}'".format(thing.database.username,
                                                                thing.database.password)
         with self.db:
             with self.db.cursor() as c:
@@ -38,7 +38,7 @@ class CreateThingInDatabaseAction(AbstractAction):
 
     def create_schema(self, thing):
         sql = "CREATE SCHEMA IF NOT EXISTS {} AUTHORIZATION {}".format(
-            thing.project.slug(), thing.project.slug()
+            thing.database.username, thing.database.username
         )
         with self.db:
             with self.db.cursor() as c:
@@ -51,7 +51,7 @@ class CreateThingInDatabaseAction(AbstractAction):
         )).read()
         with self.db:
             with self.db.cursor() as c:
-                c.execute("SET search_path TO {}".format(thing.project.slug()))
+                c.execute("SET search_path TO {}".format(thing.database.username))
                 c.execute(sql)
 
     def upsert_thing(self, thing):
@@ -60,14 +60,14 @@ class CreateThingInDatabaseAction(AbstractAction):
               'EXCLUDED.description, properties = EXCLUDED.properties'
         with self.db:
             with self.db.cursor() as c:
-                c.execute("SET search_path TO {}".format(thing.project.slug()))
+                c.execute("SET search_path TO {}".format(thing.database.username))
                 c.execute(
                     sql,
                     (thing.name, thing.uuid, thing.description, json.dumps(thing.properties))
                 )
 
     def user_exists(self, thing):
-        sql = "SELECT 1 FROM pg_roles WHERE rolname='{}'".format(thing.project.slug())
+        sql = "SELECT 1 FROM pg_roles WHERE rolname='{}'".format(thing.database.username)
         with self.db:
             with self.db.cursor() as c:
                 c.execute(sql)

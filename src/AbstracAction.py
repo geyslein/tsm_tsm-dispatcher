@@ -14,8 +14,11 @@ class AbstractAction(ABC):
             auto_offset_reset='earliest',
             enable_auto_commit=False,
             group_id=kafka_group_id,
-            value_deserializer=lambda x: loads(x.decode('utf-8'))
+            value_deserializer=lambda x: self.deserialize(x)
         )
+
+    def deserialize(self, x):
+        return loads(x.decode('utf-8'))
 
     def run_loop(self):
         for message in self.consumer:

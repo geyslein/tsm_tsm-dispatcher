@@ -21,16 +21,15 @@ class CreateThingOnMinioAction(AbstractAction):
     def act(self, message: dict):
 
         thing = Thing.get_instance(message)
-        secret = pwgen(40, symbols=True)
 
         # create user
         # not implemented in minio python sdk yet :(
         # so we have to use minio cli client wrapper
-        self.mcw.user_add(thing.slug(), secret)
+        self.mcw.user_add(thing.raw_data_storage.username, thing.raw_data_storage.password)
 
         # mc admin policy add myminio/ datalogger1-policy /root/iam-policy-datalogger1.json
         # not implemented in minio python sdk yet :(
-        self.mcw.policy_add(thing.slug(), {
+        self.mcw.policy_add(thing.raw_data_storage.username, {
             "Version": "2012-10-17",
             "Statement": [
                 {
@@ -42,7 +41,9 @@ class CreateThingOnMinioAction(AbstractAction):
                         "s3:PutObject"
                     ],
                     "Resource": [
-                        "arn:aws:s3:::{bucket_name}".format(bucket_name=thing.slug())
+                        "arn:aws:s3:::{bucket_name}".format(
+                            bucket_name=thing.raw_data_storage.bucket_name
+                        )
                     ]
                 }
             ]
@@ -50,13 +51,10 @@ class CreateThingOnMinioAction(AbstractAction):
 
         # mc admin policy set myminio/ datalogger1-policy user=datalogger1-user
         # not implemented in minio python sdk yet :(
-        self.mcw.policy_set_user(thing.slug(), thing.slug())
-
-        # Create service account
-        svc_creds = self.mcw.create_service_account(thing.slug())
+        self.mcw.policy_set_user(thing.raw_data_storage.username, thing.raw_data_storage.username)
 
         # Create bucket
-        bucket_name = thing.slug()
+        bucket_name = thing.raw_data_storage.bucket_name
         if not self.mcw.bucket_exists(bucket_name):
             try:
                 self.mcw.make_locked_bucket(bucket_name)
@@ -69,6 +67,7 @@ class CreateThingOnMinioAction(AbstractAction):
         try:
             self.mcw.enable_bucket_notification(bucket_name)
         except MinIoClientError:
+            # Bucket notification already set
             pass
 
         # set bucked tags
