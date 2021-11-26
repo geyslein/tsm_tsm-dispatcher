@@ -31,27 +31,32 @@ class ProcessNewFileAction(AbstractAction):
         bucket_name = message['Records'][0]['s3']['bucket']['name']
         tags = self.minio.get_bucket_tags(bucket_name)
         thing_uuid = tags.get('thing_uuid')
-        thing_uuid_from_bucket_name = bucket_name[-36:]
+        thing_database = {
+            'thing_database_user': tags.get('thing_database_user'),
+            'thing_database_pass': tags.get('thing_database_pass')
+        }
 
         # @todo fetch thing from database to get minio creds. Or can we do this as minioadmin in
         # @todo this case? -> We should use some admin creds as normal thing user should not has 
         # @todo the ability to set bucket and object tags (as we rely on them, here, for example.  
 
-        s = self.minio.stat_object(bucket_name, filename)
-        self.minio.presigned_get_object(bucket_name, filename)
-
         # add object tag with checkpoint and timestamp
         object_tags = Tags.new_object_tags()
         object_tags['thing_uuid'] = thing_uuid
-        object_tags['process_new_file_action_checkpoint'] = datetime.now().isoformat()
+        object_tags['checkpoint_process_new_file_action'] = datetime.now().isoformat()
         self.minio.set_object_tags(bucket_name, filename, object_tags)
 
         # forward file to basic demo scheduler
+        # @todo get database (host-) name from configuration
         data = {
-            "parser": "CsvParser",
-            "target": "postgresql://postgres:postgres@postgres/postgres",
+            "parser": tags.get('thing_properties_default_parser'),
+            "target": "postgresql://{username}:"
+                      "{password}@postgres/postgres".format(
+                username=thing_database.get('thing_database_user'),
+                password=thing_database.get('thing_database_pass')
+            ),
             "source": self.minio.presigned_get_object(bucket_name, filename),
-            "thing_uuid": "ce2b4fb6-d9de-11eb-a236-125e5a40a845"
+            "thing_uuid": thing_uuid
         }
 
         # @todo get endpint from configuration

@@ -73,5 +73,8 @@ class CreateThingOnMinioAction(AbstractAction):
         # set bucked tags
         self.mcw.set_bucket_tags(bucket_name, {
             'thing_uuid': thing.uuid,
-            'thing_name': thing.name
+            'thing_name': thing.name,
+            'thing_database_user': thing.database.username,
+            'thing_database_pass': thing.database.password,
+            'thing_properties_default_parser': thing.properties.get('default_parser')
         })
