@@ -10,7 +10,8 @@ from AbstracAction import AbstractAction
 
 
 class ProcessNewFileAction(AbstractAction):
-    def __init__(self, topic, kafka_servers, kafka_group_id, minio_settings: dict):
+    def __init__(self, topic, kafka_servers, kafka_group_id, minio_settings: dict,
+                 scheduler_settings: dict):
         super().__init__(topic, kafka_servers, kafka_group_id)
         self.minio_settings = minio_settings
 
@@ -20,6 +21,10 @@ class ProcessNewFileAction(AbstractAction):
             access_key=minio_settings.get('minio_access_key'),
             secret_key=minio_settings.get('minio_secure_key')
         )
+
+        self.scheduler_settings = scheduler_settings
+        self.request = request.Request(scheduler_settings.get('url'), method="POST")
+        self.request.add_header('Content-Type', 'application/json')
 
     def act(self, message: dict):
 
@@ -59,17 +64,11 @@ class ProcessNewFileAction(AbstractAction):
             "thing_uuid": thing_uuid
         }
 
-        # @todo get endpint from configuration
-        url = 'http://extractor:5000/extractor/run'
-
         try:
-
-            req = request.Request(url, method="POST")
-            req.add_header('Content-Type', 'application/json')
 
             data = json.dumps(data)
             data = data.encode()
-            r = request.urlopen(req, data=data)
+            r = request.urlopen(self.request, data=data)
             resp = json.loads(r.read())
 
             # add object tag with checkpoint and timestamp

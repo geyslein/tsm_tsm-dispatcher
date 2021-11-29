@@ -99,13 +99,10 @@ def run_create_database_schema_action_service(ctx, database_url):
 
 
 @cli.command()
-@click.argument(
-    'minio_url',
-    type=str,
-    envvar='MINIO_URL'
-)
+@click.argument('minio_url', type=str, envvar='MINIO_URL')
 @click.argument('minio_access_key', type=str, envvar='MINIO_ACCESS_KEY')
 @click.argument('minio_secure_key', type=str, envvar='MINIO_SECURE_KEY')
+@click.argument('scheduler_endpoint_url', type=str, envvar='SCHEDULER_ENDPOINT_URL')
 @click.option(
     '--minio_secure',
     type=bool,
@@ -116,7 +113,7 @@ def run_create_database_schema_action_service(ctx, database_url):
 )
 @click.pass_context
 def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_key,
-                                             minio_secure):
+                                 scheduler_endpoint_url, minio_secure):
     topic = ctx.parent.params['topic']
     kafka_servers = ctx.parent.params['kafka_servers']
     kafka_group_id = 'run_process_new_file_service'
@@ -128,6 +125,8 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
         'minio_access_key': minio_access_key,
         'minio_secure_key': minio_secure_key,
         'minio_secure': minio_secure
+    }, scheduler_settings={
+        "url": scheduler_endpoint_url
     })
 
     # loop while waiting for messages
