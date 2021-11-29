@@ -1,12 +1,13 @@
 class Database:
-    def __init__(self, username: str, password: str) -> None:
+    def __init__(self, username: str, password: str, url: str) -> None:
         self.username = username
         self.password = password
+        self.url = url
 
     @staticmethod
     def get_instance(message: dict):
-        if 'password' and 'username' in message.keys():
-            return Database(message.get('username'), message.get('password'))
+        if 'password' and 'username' and 'url' in message.keys():
+            return Database(message.get('username'), message.get('password'), message.get('url'))
         else:
             raise ValueError('Unable to get Database instance from message "{}"'.format(message))
 
