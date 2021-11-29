@@ -76,5 +76,6 @@ class CreateThingOnMinioAction(AbstractAction):
             'thing_name': thing.name,
             'thing_database_user': thing.database.username,
             'thing_database_pass': thing.database.password,
+            'thing_database_url': thing.database.url,
             'thing_properties_default_parser': thing.properties.get('default_parser')
         })
