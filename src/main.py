@@ -4,6 +4,7 @@ from json import loads, dumps
 
 import click
 from kafka import KafkaConsumer, KafkaProducer
+import paho.mqtt.client as mqtt
 
 from CreateThingOnMinioAction import CreateThingOnMinioAction
 from ProcessNewFileAction import ProcessNewFileAction
@@ -21,21 +22,22 @@ __version__ = '0.0.1'
               show_envvar=True,
               )
 @click.option('--topic', '-t',
-              help="Apache Kafka topic name to subscribe.",
+              help="mqtt topic name to subscribe.",
               type=str,
               required=True,
               show_envvar=True,
               envvar='TOPIC'
               )
-@click.option('kafka_servers', '--kafka-server', '-k',
+@click.option('mqtt_broker', '--mqtt-broker', '-m',
               help='Apache Kafka bootstrap server. Multiple occurrences allowed.',
               required=True,
               show_envvar=True,
               multiple=True,
-              envvar='KAFKA_SERVERS'
+              envvar='MQTT_BROKER'
 )
+
 @click.pass_context
-def cli(ctx, topic, kafka_servers, verbose):
+def cli(ctx, topic, mqtt_broker, verbose):
 
     # @todo remove topic from cli parameters and set it static per action class
 
@@ -86,10 +88,9 @@ def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, m
 @click.pass_context
 def run_create_database_schema_action_service(ctx, database_url):
     topic = ctx.parent.params['topic']  # thing_created
-    kafka_servers = ctx.parent.params['kafka_servers']
-    kafka_group_id = 'run_create_database_schema_action_service'
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
 
-    action = CreateThingInDatabaseAction(topic, kafka_servers, kafka_group_id, database_settings={
+    action = CreateThingInDatabaseAction(topic, mqtt_broker, database_settings={
         'url': database_url,
         # 'user': database_user,
         # 'pass': database_pass
@@ -138,19 +139,36 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
 @click.pass_context
 def produce(ctx, message):
     topic = ctx.parent.params['topic']
-    kafka_servers = ctx.parent.params['kafka_servers']
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
 
-    logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
+    mqtt_host = mqtt_broker[0].split(":")[0]
+    mqtt_port = int(mqtt_broker[0].split(":")[1])
+
+    logging.info('MQTT broker to connect: {}'.format(''.join(mqtt_broker)))
 
     m = json.loads(message)
 
-    producer = KafkaProducer(
-        bootstrap_servers=kafka_servers,
-        value_serializer=lambda x: dumps(x).encode('utf-8')
-    )
+    def on_connect(client, userdata, flags, rc):
+        print("Connected with result code " + str(rc))
 
-    producer.send(topic=topic, value=m)
+    def on_publish(client, userdata, mid):
+        print("Message with mid: {} published.".format(mid))
 
+    def on_log(client, userdata, level, buf):
+        print("log: ", buf)
+
+    mqtt_user = "testUser"
+    mqtt_password = "password"
+
+    client = mqtt.Client()
+    client.username_pw_set(mqtt_user, mqtt_password)
+    client.connect(mqtt_host, mqtt_port, 60)
+    client.on_connect = on_connect
+    client.on_publish = on_publish
+    client.on_log = on_log
+    client.loop_start()
+    client.publish(topic, str(m), qos=2, retain=False)
+    client.loop_stop()
 
 if __name__ == '__main__':
     cli(obj={})

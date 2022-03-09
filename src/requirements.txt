@@ -4,3 +4,5 @@ click>=8.0.3
 pwgen>=0.8.2.post0
 -i https://git.ufz.de/api/v4/projects/2959/packages/pypi/simple
 minio-cli-wrapper>=0.0.12
+paho-mqtt==1.6.1
+fastavro==1.4.9

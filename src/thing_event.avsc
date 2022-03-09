@@ -1,0 +1,49 @@
+[{"namespace": "tsm.thing.example",
+  "type": "record",
+  "name": "database",
+   "fields": [
+    {"name":  "username", "type":  "string"},
+    {"name": "password", "type": "string"},
+    {"name": "url", "type": "string"}]
+  },
+  {"namespace": "tsm.thing.example",
+    "type": "record",
+    "name": "project",
+    "fields": [
+      {"name": "name", "type": "string"},
+      {"name": "uuid", "type": "string", "logicalType": "uuid"}]
+  },
+  {"namespace": "tsm.thing.example",
+   "type": "record",
+   "name": "raw_data_storage",
+   "fields": [
+    {"name":  "bucket_name", "type":  "string"},
+    {"name": "username", "type": "string"},
+    {"name": "password", "type": "string"}]
+  },
+  {"namespace": "tsm.parser.csv",
+   "type": "record",
+   "name": "CsvParser",
+   "fields": [
+     {"name":  "settings", "type": {
+       "type": "record", "name": "settings", "fields": [
+         {"name": "timestamp_format", "type": "string"},
+         {"name": "header", "type": "int"},
+         {"name": "delimiter", "type": "string"},
+         {"name": "timestamp_column", "type": "int"},
+         {"name": "skipfooter", "type": "int"}
+       ]
+     }}
+   ]},
+  {"namespace": "tsm.thing.example",
+  "type": "record",
+  "name": "thing_created_event",
+  "fields": [
+    {"name": "uuid", "type": "string", "logicalType": "uuid"},
+    {"name": "name", "type": "string"},
+    {"name": "database","type": "tsm.thing.example.database"},
+    {"name": "project", "type": "tsm.thing.example.project"},
+    {"name": "raw_data_storage", "type": "tsm.thing.example.raw_data_storage"},
+    {"name": "parser", "type": "tsm.parser.csv.CsvParser"}]
+      }
+]

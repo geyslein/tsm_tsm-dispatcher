@@ -8,8 +8,8 @@ from thing import Thing
 
 class CreateThingInDatabaseAction(AbstractAction):
 
-    def __init__(self, topic, kafka_servers, kafka_group_id, database_settings: dict):
-        super().__init__(topic, kafka_servers, kafka_group_id)
+    def __init__(self, topic, mqtt_broker, database_settings: dict):
+        super().__init__(topic, mqtt_broker)
 
         self.db = psycopg2.connect(database_settings.get('url'))
 
