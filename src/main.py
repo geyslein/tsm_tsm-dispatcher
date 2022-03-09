@@ -149,13 +149,13 @@ def produce(ctx, message):
     m = json.loads(message)
 
     def on_connect(client, userdata, flags, rc):
-        print("Connected with result code " + str(rc))
+        logging.info("Connected with result code " + str(rc))
 
     def on_publish(client, userdata, mid):
-        print("Message with mid: {} published.".format(mid))
+        logging.info("Message with mid: {} published.".format(mid))
 
     def on_log(client, userdata, level, buf):
-        print("log: ", buf)
+        logging.info("log: ", buf)
 
     mqtt_user = "testUser"
     mqtt_password = "password"

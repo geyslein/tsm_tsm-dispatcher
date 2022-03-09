@@ -40,11 +40,11 @@ class AbstractAction(ABC):
             content = str(message.payload.decode("utf-8"))
             parsed_content = ast.literal_eval(content)
             if avro_schema_validator("thing_event.avsc", parsed_content):
-                print(
+                logging.info(
                     "Received message on topic '{topic}' with QoS {qos}:".format(topic=message.topic, qos=message.qos))
                 self.act(parsed_content)
             else:
-                print("schema mismatch")
+                logging.info("schema mismatch")
                 raise KeyError
 
         self.mqtt_client.subscribe(self.topic)
