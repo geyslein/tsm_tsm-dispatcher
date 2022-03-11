@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from json import loads
 import ast
 from AvroSchemaValidator import avro_schema_validator
+from fastavro._validate_common import ValidationError
 
 
 class AbstractAction(ABC):
@@ -39,13 +40,14 @@ class AbstractAction(ABC):
         def on_message(client, userdata, message):
             content = str(message.payload.decode("utf-8"))
             parsed_content = ast.literal_eval(content)
+            print(parsed_content)
             if avro_schema_validator("thing_event.avsc", parsed_content):
                 logging.info(
                     "Received message on topic '{topic}' with QoS {qos}:".format(topic=message.topic, qos=message.qos))
                 self.act(parsed_content)
             else:
                 logging.info("schema mismatch")
-                raise KeyError
+                raise ValidationError
 
         self.mqtt_client.subscribe(self.topic)
         self.mqtt_client.on_message = on_message
