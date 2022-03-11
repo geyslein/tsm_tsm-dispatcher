@@ -29,7 +29,7 @@ __version__ = '0.0.1'
               envvar='TOPIC'
               )
 @click.option('mqtt_broker', '--mqtt-broker', '-m',
-              help='Apache Kafka bootstrap server. Multiple occurrences allowed.',
+              help='MQTT broker to connect',
               required=True,
               show_envvar=True,
               multiple=True,
@@ -65,12 +65,11 @@ def cli(ctx, topic, mqtt_broker, verbose):
 def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, minio_secure_key,
                                              minio_secure):
     topic = ctx.parent.params['topic']
-    kafka_servers = ctx.parent.params['kafka_servers']
-    kafka_group_id = 'run_create_thing_on_minio_action_service'
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
 
-    logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
+    logging.info('MQTT broker servers to connect: {}'.format(mqtt_broker))
 
-    action = CreateThingOnMinioAction(topic, kafka_servers, kafka_group_id, minio_settings={
+    action = CreateThingOnMinioAction(topic, mqtt_broker, minio_settings={
         'minio_url': minio_url,
         'minio_access_key': minio_access_key,
         'minio_secure_key': minio_secure_key,
@@ -116,12 +115,11 @@ def run_create_database_schema_action_service(ctx, database_url):
 def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_key,
                                  scheduler_endpoint_url, minio_secure):
     topic = ctx.parent.params['topic']
-    kafka_servers = ctx.parent.params['kafka_servers']
-    kafka_group_id = 'run_process_new_file_service'
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
 
-    logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
+    logging.info('Apache kafka servers to connect: {}'.format(mqtt_broker))
 
-    action = ProcessNewFileAction(topic, kafka_servers, kafka_group_id, minio_settings={
+    action = ProcessNewFileAction(topic, mqtt_broker, minio_settings={
         'minio_url': minio_url,
         'minio_access_key': minio_access_key,
         'minio_secure_key': minio_secure_key,

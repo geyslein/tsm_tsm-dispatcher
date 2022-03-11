@@ -7,8 +7,8 @@ from thing import Thing
 
 
 class CreateThingOnMinioAction(AbstractAction):
-    def __init__(self, topic, kafka_servers, kafka_group_id, minio_settings: dict):
-        super().__init__(topic, kafka_servers, kafka_group_id)
+    def __init__(self, topic, mqtt_broker, minio_settings: dict):
+        super().__init__(topic, mqtt_broker)
 
         # Custom minio client wrapper
         self.mcw = Mc(
