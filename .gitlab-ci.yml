@@ -66,6 +66,8 @@ build-images:
 
 integration-test:
   stage: test
+  tags:
+    - hifis
   image:
     name: ${IMAGE_URL}:${CI_JOB_DATE}
     entrypoint: [""]
