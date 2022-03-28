@@ -3,7 +3,6 @@ import logging
 from json import loads, dumps
 
 import click
-from kafka import KafkaConsumer, KafkaProducer
 import paho.mqtt.client as mqtt
 
 from CreateThingOnMinioAction import CreateThingOnMinioAction
@@ -35,9 +34,23 @@ __version__ = '0.0.1'
               multiple=True,
               envvar='MQTT_BROKER'
 )
+@click.option('mqtt_user', '--mqtt-user', '-u',
+              help='MQTT user',
+              required=True,
+              show_envvar=True,
+              multiple=True,
+              envvar='MQTT_USER'
+)
+@click.option('mqtt_password', '--mqtt-password', '-p',
+              help='MQTT password',
+              required=True,
+              show_envvar=True,
+              multiple=True,
+              envvar='MQTT_PASSWORD'
+)
 
 @click.pass_context
-def cli(ctx, topic, mqtt_broker, verbose):
+def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
 
     # @todo remove topic from cli parameters and set it static per action class
 
@@ -67,7 +80,7 @@ def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, m
     topic = ctx.parent.params['topic']
     mqtt_broker = ctx.parent.params["mqtt_broker"]
 
-    logging.info('MQTT broker servers to connect: {}'.format(mqtt_broker))
+    logging.info('MQTT broker to connect: {}'.format(mqtt_broker))
 
     action = CreateThingOnMinioAction(topic, mqtt_broker, minio_settings={
         'minio_url': minio_url,
@@ -88,8 +101,10 @@ def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, m
 def run_create_database_schema_action_service(ctx, database_url):
     topic = ctx.parent.params['topic']  # thing_created
     mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"][0]
+    mqtt_password = ctx.parent.params["mqtt_password"][0]
 
-    action = CreateThingInDatabaseAction(topic, mqtt_broker, database_settings={
+    action = CreateThingInDatabaseAction(topic, mqtt_broker, mqtt_user, mqtt_password, database_settings={
         'url': database_url,
         # 'user': database_user,
         # 'pass': database_pass
@@ -117,7 +132,7 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
     topic = ctx.parent.params['topic']
     mqtt_broker = ctx.parent.params["mqtt_broker"]
 
-    logging.info('Apache kafka servers to connect: {}'.format(mqtt_broker))
+    logging.info('MQTT broker to connect: {}'.format(mqtt_broker))
 
     action = ProcessNewFileAction(topic, mqtt_broker, minio_settings={
         'minio_url': minio_url,
@@ -131,42 +146,6 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
     # loop while waiting for messages
     action.run_loop()
 
-
-@cli.command()
-@click.argument('message', type=str)
-@click.pass_context
-def produce(ctx, message):
-    topic = ctx.parent.params['topic']
-    mqtt_broker = ctx.parent.params["mqtt_broker"]
-
-    mqtt_host = mqtt_broker[0].split(":")[0]
-    mqtt_port = int(mqtt_broker[0].split(":")[1])
-
-    logging.info('MQTT broker to connect: {}'.format(''.join(mqtt_broker)))
-
-    m = json.loads(message)
-
-    def on_connect(client, userdata, flags, rc):
-        logging.info("Connected with result code " + str(rc))
-
-    def on_publish(client, userdata, mid):
-        logging.info("Message with mid: {} published.".format(mid))
-
-    def on_log(client, userdata, level, buf):
-        logging.info("log: ", buf)
-
-    mqtt_user = "testUser"
-    mqtt_password = "password"
-
-    client = mqtt.Client()
-    client.username_pw_set(mqtt_user, mqtt_password)
-    client.connect(mqtt_host, mqtt_port, 60)
-    client.on_connect = on_connect
-    client.on_publish = on_publish
-    client.on_log = on_log
-    client.loop_start()
-    client.publish(topic, str(m), qos=2, retain=False)
-    client.loop_stop()
 
 if __name__ == '__main__':
     cli(obj={})

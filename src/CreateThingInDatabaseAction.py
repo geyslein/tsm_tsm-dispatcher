@@ -8,8 +8,8 @@ from thing import Thing
 
 class CreateThingInDatabaseAction(AbstractAction):
 
-    def __init__(self, topic, mqtt_broker, database_settings: dict):
-        super().__init__(topic, mqtt_broker)
+    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, database_settings: dict):
+        super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
 
         self.db = psycopg2.connect(database_settings.get('url'))
 
