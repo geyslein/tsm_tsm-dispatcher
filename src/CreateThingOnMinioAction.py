@@ -7,8 +7,8 @@ from thing import Thing
 
 
 class CreateThingOnMinioAction(AbstractAction):
-    def __init__(self, topic, mqtt_broker, minio_settings: dict):
-        super().__init__(topic, mqtt_broker)
+    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings: dict):
+        super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
 
         # Custom minio client wrapper
         self.mcw = Mc(

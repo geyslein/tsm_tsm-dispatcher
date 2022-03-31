@@ -10,9 +10,9 @@ from AbstracAction import AbstractAction
 
 
 class ProcessNewFileAction(AbstractAction):
-    def __init__(self, topic, mqtt_broker, minio_settings: dict,
+    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings: dict,
                  scheduler_settings: dict):
-        super().__init__(topic, mqtt_broker)
+        super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
         self.minio_settings = minio_settings
 
         self.minio = Minio(

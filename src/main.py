@@ -79,10 +79,12 @@ def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, m
                                              minio_secure):
     topic = ctx.parent.params['topic']
     mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"][0]
+    mqtt_password = ctx.parent.params["mqtt_password"][0]
 
     logging.info('MQTT broker to connect: {}'.format(mqtt_broker))
 
-    action = CreateThingOnMinioAction(topic, mqtt_broker, minio_settings={
+    action = CreateThingOnMinioAction(topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings={
         'minio_url': minio_url,
         'minio_access_key': minio_access_key,
         'minio_secure_key': minio_secure_key,
@@ -131,10 +133,12 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
                                  scheduler_endpoint_url, minio_secure):
     topic = ctx.parent.params['topic']
     mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"][0]
+    mqtt_password = ctx.parent.params["mqtt_password"][0]
 
     logging.info('MQTT broker to connect: {}'.format(mqtt_broker))
 
-    action = ProcessNewFileAction(topic, mqtt_broker, minio_settings={
+    action = ProcessNewFileAction(topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings={
         'minio_url': minio_url,
         'minio_access_key': minio_access_key,
         'minio_secure_key': minio_secure_key,
