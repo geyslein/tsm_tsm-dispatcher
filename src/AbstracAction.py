@@ -3,8 +3,7 @@ import logging
 import paho.mqtt.client as mqtt
 from abc import ABC, abstractmethod
 
-from fastavro.schema import load_schema
-from fastavro import validate
+from AvroSchemaValidator import validate_avro_schema
 from fastavro._validate_common import ValidationError
 
 logging.basicConfig(format='%(levelname)s: (%(asctime)s) %(message)s', datefmt='%d.%m.%y %H:%M:%S', level=logging.INFO)
@@ -24,7 +23,7 @@ class AbstractAction(ABC):
     def on_message(self, client, userdata, message):
         content = str(message.payload.decode("utf-8"))
         parsed_content = json.loads(content)
-        if self.validate_avro_schema(parsed_content):
+        if validate_avro_schema(parsed_content, self.has_schema, self.schema_file):
             logging.info(
                "Received message on topic '{topic}' with QoS {qos}!".format(p=parsed_content,topic=message.topic, qos=message.qos))
             self.act(parsed_content)
@@ -36,19 +35,6 @@ class AbstractAction(ABC):
             logging.info("Connected to {mqtt_broker}!".format(mqtt_broker=self.mqtt_broker[0]))
         else:
             logging.info("Failed to connect, return code %d\n", rc)
-
-    def validate_avro_schema(self, message):
-        if self.has_schema:
-            schema = load_schema(self.schema_file)
-            try:
-                validate(message, schema)
-                logging.info("Received message matches schema!")
-                return True
-            except ValidationError:
-                logging.warning("Received message does not match given avro schema!")
-                return False
-        else:
-            return True
 
     @staticmethod
     def on_log(client, userdata, level, buf):
