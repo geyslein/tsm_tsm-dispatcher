@@ -1,10 +1,13 @@
+import json
 import logging
 import paho.mqtt.client as mqtt
 from abc import ABC, abstractmethod
-import ast
 
-from AvroSchemaValidator import avro_schema_validator
+from fastavro.schema import load_schema
+from fastavro import validate
 from fastavro._validate_common import ValidationError
+
+logging.basicConfig(format='%(levelname)s: (%(asctime)s) %(message)s', datefmt='%d.%m.%y %H:%M:%S', level=logging.INFO)
 
 
 class AbstractAction(ABC):
@@ -20,25 +23,36 @@ class AbstractAction(ABC):
 
     def on_message(self, client, userdata, message):
         content = str(message.payload.decode("utf-8"))
-        parsed_content = ast.literal_eval(content)
-        if avro_schema_validator("thing_event.avsc", parsed_content):
+        parsed_content = json.loads(content)
+        if self.validate_avro_schema(parsed_content):
             logging.info(
-                "Received message on topic '{topic}' with QoS {qos}:".format(topic=message.topic, qos=message.qos))
+               "Received message on topic '{topic}' with QoS {qos}!".format(p=parsed_content,topic=message.topic, qos=message.qos))
             self.act(parsed_content)
         else:
-            logging.info("schema mismatch")
             raise ValidationError
 
-    @staticmethod
-    def on_connect(client, userdata, flags, rc):
+    def on_connect(self,client, userdata, flags, rc):
         if rc == 0:
-            logging.info("Connected to {mqtt_broker}!".format(mqtt_broker=client))
+            logging.info("Connected to {mqtt_broker}!".format(mqtt_broker=self.mqtt_broker[0]))
         else:
             logging.info("Failed to connect, return code %d\n", rc)
 
+    def validate_avro_schema(self, message):
+        if self.has_schema:
+            schema = load_schema(self.schema_file)
+            try:
+                validate(message, schema)
+                logging.info("Received message matches schema!")
+                return True
+            except ValidationError:
+                logging.warning("Received message does not match given avro schema!")
+                return False
+        else:
+            return True
+
     @staticmethod
     def on_log(client, userdata, level, buf):
-        logging.info("log: ", buf)
+        logging.info("{}".format(buf))
 
     def connect_mqtt(self):
         self.mqtt_client.username_pw_set(self.mqtt_user, self.mqtt_password)

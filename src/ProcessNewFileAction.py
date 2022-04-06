@@ -1,5 +1,5 @@
 import json
-import urllib
+import logging
 from datetime import datetime
 from urllib import request
 
@@ -13,8 +13,9 @@ class ProcessNewFileAction(AbstractAction):
     def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings: dict,
                  scheduler_settings: dict):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
+        self.has_schema = True
+        self.schema_file = './avro_schema_files/new_file_event.avsc'
         self.minio_settings = minio_settings
-
         self.minio = Minio(
             minio_settings.get('minio_url'),
             secure=minio_settings.get('minio_secure', True),
