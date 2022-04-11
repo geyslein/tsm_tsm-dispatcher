@@ -3,7 +3,7 @@ import logging
 from json import loads, dumps
 
 import click
-from kafka import KafkaConsumer, KafkaProducer
+import paho.mqtt.client as mqtt
 
 from CreateThingOnMinioAction import CreateThingOnMinioAction
 from ProcessNewFileAction import ProcessNewFileAction
@@ -21,21 +21,36 @@ __version__ = '0.0.1'
               show_envvar=True,
               )
 @click.option('--topic', '-t',
-              help="Apache Kafka topic name to subscribe.",
+              help="mqtt topic name to subscribe.",
               type=str,
               required=True,
               show_envvar=True,
               envvar='TOPIC'
               )
-@click.option('kafka_servers', '--kafka-server', '-k',
-              help='Apache Kafka bootstrap server. Multiple occurrences allowed.',
+@click.option('mqtt_broker', '--mqtt-broker', '-m',
+              help='MQTT broker to connect',
               required=True,
               show_envvar=True,
               multiple=True,
-              envvar='KAFKA_SERVERS'
+              envvar='MQTT_BROKER'
 )
+@click.option('mqtt_user', '--mqtt-user', '-u',
+              help='MQTT user',
+              required=True,
+              show_envvar=True,
+              multiple=True,
+              envvar='MQTT_USER'
+)
+@click.option('mqtt_password', '--mqtt-password', '-p',
+              help='MQTT password',
+              required=True,
+              show_envvar=True,
+              multiple=True,
+              envvar='MQTT_PASSWORD'
+)
+
 @click.pass_context
-def cli(ctx, topic, kafka_servers, verbose):
+def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
 
     # @todo remove topic from cli parameters and set it static per action class
 
@@ -63,12 +78,13 @@ def cli(ctx, topic, kafka_servers, verbose):
 def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, minio_secure_key,
                                              minio_secure):
     topic = ctx.parent.params['topic']
-    kafka_servers = ctx.parent.params['kafka_servers']
-    kafka_group_id = 'run_create_thing_on_minio_action_service'
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"][0]
+    mqtt_password = ctx.parent.params["mqtt_password"][0]
 
-    logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
+    logging.info('MQTT broker to connect: {}'.format(mqtt_broker))
 
-    action = CreateThingOnMinioAction(topic, kafka_servers, kafka_group_id, minio_settings={
+    action = CreateThingOnMinioAction(topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings={
         'minio_url': minio_url,
         'minio_access_key': minio_access_key,
         'minio_secure_key': minio_secure_key,
@@ -86,10 +102,11 @@ def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, m
 @click.pass_context
 def run_create_database_schema_action_service(ctx, database_url):
     topic = ctx.parent.params['topic']  # thing_created
-    kafka_servers = ctx.parent.params['kafka_servers']
-    kafka_group_id = 'run_create_database_schema_action_service'
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"][0]
+    mqtt_password = ctx.parent.params["mqtt_password"][0]
 
-    action = CreateThingInDatabaseAction(topic, kafka_servers, kafka_group_id, database_settings={
+    action = CreateThingInDatabaseAction(topic, mqtt_broker, mqtt_user, mqtt_password, database_settings={
         'url': database_url,
         # 'user': database_user,
         # 'pass': database_pass
@@ -115,12 +132,13 @@ def run_create_database_schema_action_service(ctx, database_url):
 def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_key,
                                  scheduler_endpoint_url, minio_secure):
     topic = ctx.parent.params['topic']
-    kafka_servers = ctx.parent.params['kafka_servers']
-    kafka_group_id = 'run_process_new_file_service'
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"][0]
+    mqtt_password = ctx.parent.params["mqtt_password"][0]
 
-    logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
+    logging.info('MQTT broker to connect: {}'.format(mqtt_broker))
 
-    action = ProcessNewFileAction(topic, kafka_servers, kafka_group_id, minio_settings={
+    action = ProcessNewFileAction(topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings={
         'minio_url': minio_url,
         'minio_access_key': minio_access_key,
         'minio_secure_key': minio_secure_key,
@@ -131,25 +149,6 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
 
     # loop while waiting for messages
     action.run_loop()
-
-
-@cli.command()
-@click.argument('message', type=str)
-@click.pass_context
-def produce(ctx, message):
-    topic = ctx.parent.params['topic']
-    kafka_servers = ctx.parent.params['kafka_servers']
-
-    logging.info('Apache kafka servers to connect: {}'.format(''.join(kafka_servers)))
-
-    m = json.loads(message)
-
-    producer = KafkaProducer(
-        bootstrap_servers=kafka_servers,
-        value_serializer=lambda x: dumps(x).encode('utf-8')
-    )
-
-    producer.send(topic=topic, value=m)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,32 @@
+{"name": "new_file_event",
+ "type": "record",
+ "fields": [
+  {"name": "EventName", "type": "string"},
+  {"name": "Key", "type": "string"},
+  {"name": "Records",
+   "type": [
+     {"type": "array",
+     "items": [
+       {"type": "record",
+       "name": "Records",
+       "namespace": "new_file_event",
+       "fields": [
+         {"type": [
+           {"type": "record",
+           "name": "object",
+           "namespace": "new_file_event.Records",
+           "fields": [{"name": "key", "type": "string"}]},
+          "null"],
+         "name": "object"},
+        {"name": "s3",
+         "type": [
+           {"type": "record",
+           "name": "s3",
+           "namespace": "new_file_event.Records",
+           "fields": [
+             {"name": "bucket",
+             "type": [
+               {"type": "record",
+               "name": "bucket",
+               "namespace": "new_file_event.Records.s3",
+               "fields": [{"name": "name", "type": "string"}]}]}]}]}]}]}]}]}

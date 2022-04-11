@@ -1,6 +1,7 @@
 import json
 import os
 import psycopg2
+import logging
 
 from AbstracAction import AbstractAction
 from thing import Thing
@@ -8,9 +9,10 @@ from thing import Thing
 
 class CreateThingInDatabaseAction(AbstractAction):
 
-    def __init__(self, topic, kafka_servers, kafka_group_id, database_settings: dict):
-        super().__init__(topic, kafka_servers, kafka_group_id)
-
+    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, database_settings: dict):
+        super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
+        self.has_schema = True
+        self.schema_file = './avro_schema_files/thing_event.avsc'
         self.db = psycopg2.connect(database_settings.get('url'))
 
     def act(self, message: dict):

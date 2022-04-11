@@ -7,8 +7,10 @@ from thing import Thing
 
 
 class CreateThingOnMinioAction(AbstractAction):
-    def __init__(self, topic, kafka_servers, kafka_group_id, minio_settings: dict):
-        super().__init__(topic, kafka_servers, kafka_group_id)
+    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings: dict):
+        super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
+        self.has_schema = True
+        self.schema_file = './avro_schema_files/thing_event.avsc'
 
         # Custom minio client wrapper
         self.mcw = Mc(
