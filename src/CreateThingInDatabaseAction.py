@@ -53,17 +53,25 @@ class CreateThingInDatabaseAction(AbstractAction):
         )).read()
         with self.db:
             with self.db.cursor() as c:
+                # Set search path for current session
                 c.execute("SET search_path TO {}".format(thing.database.username))
-                c.execute("ALTER ROLE {user} SET search_path to '{user}'".format(
+                # Allow tcp connections to database with new user
+                c.execute("GRANT CONNECT ON DATABASE {db_name} TO {user}".format(
+                    user=thing.database.username, db_name=self.db.info.dbname))
+                # Set default schema when connecting as user
+                c.execute("ALTER ROLE {user} SET search_path to {user}".format(
                     user=thing.database.username)
                 )
+                # Grant schema to new user
+                c.execute("GRANT USAGE ON SCHEMA {user} TO {user}".format(
+                    user=thing.database.username)
+                )
+                # Equip new user with all grants
+                c.execute("GRANT ALL ON SCHEMA {user} TO {user}".format(
+                    user=thing.database.username)
+                )
+                # deploy the tables and indices and so on
                 c.execute(sql)
-                c.execute("GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA {user} TO {user}".format(
-                    user=thing.database.username)
-                )
-                c.execute("GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA {user} TO {user}".format(
-                    user=thing.database.username)
-                )
 
     def upsert_thing(self, thing):
         sql = 'INSERT INTO thing (name, uuid, description, properties) VALUES (%s, %s, %s, ' \
