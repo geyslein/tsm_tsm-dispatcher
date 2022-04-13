@@ -37,6 +37,10 @@ class CreateThingInDatabaseAction(AbstractAction):
         with self.db:
             with self.db.cursor() as c:
                 c.execute(sql)
+                c.execute("GRANT {user} TO {creator}".format(
+                    user=thing.database.username,
+                    creator=self.db.info.user
+                ))
 
     def create_schema(self, thing):
         sql = "CREATE SCHEMA IF NOT EXISTS {user} AUTHORIZATION {user}".format(
