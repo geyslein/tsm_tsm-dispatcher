@@ -1,4 +1,4 @@
-TSM Dispatcher is a service to handle a collection of actions when they are triggered by Apache Kafka events.
+TSM Dispatcher is a service to handle a collection of actions when they are triggered by MQTT events.
 
 # Install
 
