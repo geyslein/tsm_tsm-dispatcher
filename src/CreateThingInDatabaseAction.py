@@ -77,6 +77,14 @@ class CreateThingInDatabaseAction(AbstractAction):
                 # deploy the tables and indices and so on
                 c.execute(sql)
 
+                c.execute("GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA {user} TO {user}".format(
+                    user=thing.database.username)
+                )
+
+                c.execute("GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA {user} TO {user}".format(
+                    user=thing.database.username)
+                )
+
     def upsert_thing(self, thing):
         sql = 'INSERT INTO thing (name, uuid, description, properties) VALUES (%s, %s, %s, ' \
               '%s) ON CONFLICT (uuid) DO UPDATE SET name = EXCLUDED.name, description = ' \
