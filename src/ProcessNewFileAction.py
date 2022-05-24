@@ -10,10 +10,12 @@ from AbstracAction import AbstractAction
 
 
 class ProcessNewFileAction(AbstractAction):
+
+    SCHEMA_FILE = './avro_schema_files/new_file_event.avsc'
+
     def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings: dict,
                  scheduler_settings: dict):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
-        self.schema_file = './avro_schema_files/new_file_event.avsc'
         self.minio_settings = minio_settings
         self.minio = Minio(
             minio_settings.get('minio_url'),

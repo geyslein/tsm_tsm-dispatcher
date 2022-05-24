@@ -9,9 +9,10 @@ from thing import Thing
 
 class CreateThingInDatabaseAction(AbstractAction):
 
+    SCHEMA_FILE = './avro_schema_files/thing_event.avsc'
+
     def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, database_settings: dict):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
-        self.schema_file = './avro_schema_files/thing_event.avsc'
         self.db = psycopg2.connect(database_settings.get('url'))
 
     def act(self, message: dict):

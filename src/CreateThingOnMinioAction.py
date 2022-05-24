@@ -7,9 +7,11 @@ from thing import Thing
 
 
 class CreateThingOnMinioAction(AbstractAction):
+
+    SCHEMA_FILE = './avro_schema_files/thing_event.avsc'
+
     def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings: dict):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
-        self.schema_file = './avro_schema_files/thing_event.avsc'
 
         # Custom minio client wrapper
         self.mcw = Mc(

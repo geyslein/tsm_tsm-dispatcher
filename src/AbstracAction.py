@@ -8,19 +8,20 @@ logging.basicConfig(format='%(levelname)s: (%(asctime)s) %(message)s', datefmt='
 
 class AbstractAction(ABC):
 
+    SCHEMA_FILE = None  # default, may be overwritten in subclasses
+
     def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password):
         self.topic = topic
         self.mqtt_broker = mqtt_broker
         self.mqtt_user = mqtt_user
         self.mqtt_password = mqtt_password
-        self.schema_file = None  # default, may be overwritten in subclasses
 
         self.mqtt_host = self.mqtt_broker[0].split(":")[0]
         self.mqtt_port = int(self.mqtt_broker[0].split(":")[1])
         self.mqtt_client = mqtt.Client()
 
     def connect_mqtt(self):
-        self.mqtt_client.user_data_set({"schema_file": self.schema_file,
+        self.mqtt_client.user_data_set({"schema_file": self.SCHEMA_FILE,
                                         "act": self.act,
                                         "mqtt_broker": self.mqtt_broker[0]})
         self.mqtt_client.username_pw_set(self.mqtt_user, self.mqtt_password)
