@@ -39,5 +39,5 @@ class AbstractAction(ABC):
         self.mqtt_client.loop_forever()
 
     @abstractmethod
-    def act(self, message: dict):
+    def act(self, message, client, userdata, message):
         raise NotImplementedError

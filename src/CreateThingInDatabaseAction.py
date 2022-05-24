@@ -15,7 +15,7 @@ class CreateThingInDatabaseAction(AbstractAction):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
         self.db = psycopg2.connect(database_settings.get('url'))
 
-    def act(self, message: dict):
+    def act(self, message: dict, *args, **kwargs):
 
         thing = Thing.get_instance(message)
 

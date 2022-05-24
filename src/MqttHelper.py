@@ -11,7 +11,7 @@ def on_message(client, userdata, message):
         logging.info(
             "Received message on topic '{topic}' with QoS {qos}!".format(topic=message.topic, qos=message.qos))
         try:
-            userdata['act'](parsed_content)
+            userdata['act'](parsed_content, client, userdata, message)
         except Exception as e:
             logging.warning("Error during message processing: {err}!".format(err=e))
             logging.warning("The following message could not be processed:")
