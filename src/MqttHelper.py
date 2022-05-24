@@ -7,7 +7,7 @@ from fastavro._validate_common import ValidationError
 def on_message(client, userdata, message):
     content = str(message.payload.decode("utf-8"))
     parsed_content = json.loads(content)
-    if validate_avro_schema(parsed_content, userdata['has_schema'], userdata['schema_file']):
+    if validate_avro_schema(parsed_content, userdata['schema_file']):
         logging.info(
             "Received message on topic '{topic}' with QoS {qos}!".format(topic=message.topic, qos=message.qos))
         try:

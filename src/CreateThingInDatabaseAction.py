@@ -11,7 +11,6 @@ class CreateThingInDatabaseAction(AbstractAction):
 
     def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, database_settings: dict):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
-        self.has_schema = True
         self.schema_file = './avro_schema_files/thing_event.avsc'
         self.db = psycopg2.connect(database_settings.get('url'))
 
