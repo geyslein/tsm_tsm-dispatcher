@@ -152,7 +152,7 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
     action.run_loop()
 
 @cli.command()
-@click.option("-t", "--target-uri", type=str, help="datastore uri")
+@click.option("-t", "--target-uri", type=str, required=True, help="datastore uri")
 @click.pass_context
 def parse_data(ctx, target_uri: str):
 

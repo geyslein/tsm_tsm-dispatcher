@@ -5,6 +5,10 @@ from __future__ import annotations
 
 from typing import Dict, Callable, List
 from AbstracAction import AbstractAction
+
+import paho.mqtt.client as mqtt
+
+from tsm_datastore_lib import get_datastore
 from tsm_datastore_lib.Observation import Observation
 
 
@@ -62,9 +66,11 @@ def get_parser(topic: str) -> Callable[[dict], Observation]:
 class DataAction(AbstractAction):
     def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, target_uri: str):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
+        self._target_uri = target_uri
 
     def act(self, payload, client, userdata, message):
-        # if "properties" in message:
+        # NOTE: not yet working as the thing is not created as intended
+        # datastore = get_datastore(self._target_uri, "32036c37-ba4c-4271-8815-500023374b9e")
         origin = f"{userdata['mqtt_broker']}/{message.topic}"
         parser = get_parser(message.topic)
         observations = parser(payload, origin)
