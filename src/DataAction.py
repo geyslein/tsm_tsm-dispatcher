@@ -12,7 +12,7 @@ from tsm_datastore_lib import get_datastore
 from tsm_datastore_lib.Observation import Observation
 
 
-def envimo_parser(payload: dict, origin: str) -> List[Observation] | None:
+def envimo_parser(payload: dict, origin: str) -> List[Observation]:
     # the basic data massage looked like this
     # {
     #     "type": "Feature",
@@ -26,7 +26,7 @@ def envimo_parser(payload: dict, origin: str) -> List[Observation] | None:
 
     properties = payload.get("properties")
     if properties is None:
-        return
+        return []
 
     out = []
     for timestamp, values in properties["observations"].items():
