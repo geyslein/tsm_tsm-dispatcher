@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import uuid
 from typing import Dict, Callable, List
 from AbstracAction import AbstractAction
 
@@ -10,6 +11,7 @@ import paho.mqtt.client as mqtt
 
 from tsm_datastore_lib import get_datastore
 from tsm_datastore_lib.Observation import Observation
+from tsm_datastore_lib.SqlAlchemyDatastore import SqlAlchemyDatastore
 
 
 def envimo_parser(payload: dict, origin: str) -> List[Observation]:
@@ -64,9 +66,11 @@ def get_parser(topic: str) -> Callable[[dict], Observation]:
 
 
 class DataAction(AbstractAction):
-    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, target_uri: str):
+    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, target_uri: str, device_id: uuid.UUID):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
         self._target_uri = target_uri
+
+        self.datastore = SqlAlchemyDatastore(target_uri, device_id)
 
     def act(self, payload, client, userdata, message):
         # NOTE: not yet working as the thing is not created as intended
@@ -74,4 +78,7 @@ class DataAction(AbstractAction):
         origin = f"{userdata['mqtt_broker']}/{message.topic}"
         parser = get_parser(message.topic)
         observations = parser(payload, origin)
-        print(observations)
+
+        self.datastore.initiate_connection()
+        self.datastore.store_observations(observations)
+        self.datastore.finalize()
