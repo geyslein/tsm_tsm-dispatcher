@@ -9,7 +9,7 @@ import paho.mqtt.client as mqtt
 from CreateThingOnMinioAction import CreateThingOnMinioAction
 from ProcessNewFileAction import ProcessNewFileAction
 from CreateThingInDatabaseAction import CreateThingInDatabaseAction
-from DataAction import DataAction
+from MqttDatastreamAction import MqttDatastreamAction
 
 __version__ = '0.0.1'
 
@@ -163,7 +163,7 @@ def parse_data(ctx, target_uri: str, device_id: uuid.UUID):
     mqtt_user = ctx.parent.params["mqtt_user"][0]
     mqtt_password = ctx.parent.params["mqtt_password"][0]
 
-    action = DataAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri, device_id)
+    action = MqttDatastreamAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri, device_id)
 
     action.run_loop()
 

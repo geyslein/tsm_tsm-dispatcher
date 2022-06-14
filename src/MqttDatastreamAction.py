@@ -65,7 +65,7 @@ def get_parser(topic: str) -> Callable[[dict], Observation]:
     return _PARSERS[topic]
 
 
-class DataAction(AbstractAction):
+class MqttDatastreamAction(AbstractAction):
     def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, target_uri: str, device_id: uuid.UUID):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
         self._target_uri = target_uri
