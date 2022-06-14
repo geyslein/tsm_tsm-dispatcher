@@ -3,7 +3,7 @@ import os
 import psycopg2
 import logging
 
-from AbstracAction import AbstractAction
+from AbstractAction import AbstractAction
 from thing import Thing
 
 

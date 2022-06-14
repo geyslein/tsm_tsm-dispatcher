@@ -1,6 +1,6 @@
 from pwgen import pwgen
 
-from AbstracAction import AbstractAction
+from AbstractAction import AbstractAction
 from minio_cli_wrapper.mc import Mc, MinIoClientError
 
 from thing import Thing

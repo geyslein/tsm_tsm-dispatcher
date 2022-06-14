@@ -6,7 +6,7 @@ from urllib import request
 from minio import Minio
 from minio.commonconfig import Tags
 
-from AbstracAction import AbstractAction
+from AbstractAction import AbstractAction
 
 
 class ProcessNewFileAction(AbstractAction):
