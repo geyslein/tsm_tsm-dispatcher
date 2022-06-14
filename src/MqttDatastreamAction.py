@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import time
 import uuid
 from typing import Dict, Callable, List
 from AbstractAction import AbstractAction
@@ -44,41 +45,61 @@ def envimo_parser(payload: dict, origin: str) -> List[Observation]:
     return out
 
 
-
 # the parser/mapper 'database'
-_PARSERS: Dict[str, Callable[[dict], List[Observation] | None]] = {
-    "seefo-envimo-cr6-test-001/state/cr6/18341/" : envimo_parser
+_SETTINGS: Dict[str, Dict] = {
+    "seefo-envimo-cr6-test-001/state/cr6/18341/": {
+        "parser": envimo_parser,
+        "target_uri": "postgresql://myfirst6185a5b8462711ec910a125e5a40a845:d0ZZ9d3QSDZ6tXIZTnKRY1uVLKIc05GmQh8SA36M@localhost:5432/postgres",
+        "device_id": "057d8bba-40b3-11ec-a337-125e5a40a849"
+    }
 }
 
 
-def get_parser(topic: str) -> Callable[[dict], Observation]:
-    """
-    Just a mock of a functionality to dynamically returning a parser for a given topic.
-
-    We currently have no concept for this. One possible option would be to store the
-    necessary parser/mapping as a property of the thing (like we do with the file based
-    parsers) and incorporate the thing UUID into the topic. With this we could query the
-    data base for an parser/mapper.
-    """
-    if topic not in _PARSERS:
-        raise ValueError(f"no parser found for topic: {topic}")
-    return _PARSERS[topic]
+def get_datastore_by_topic(topic: str):
+    target_uri = _SETTINGS[topic]["target_uri"]
+    device_id = _SETTINGS[topic]["device_id"]
+    return SqlAlchemyDatastore(target_uri, device_id)
 
 
 class MqttDatastreamAction(AbstractAction):
-    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, target_uri: str, device_id: uuid.UUID):
+    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
-        self._target_uri = target_uri
+        self.parser_mapping = {}
+        self.time_of_settings_update = 0
+        self.update_settings()
 
-        self.datastore = SqlAlchemyDatastore(target_uri, device_id)
+    def update_settings(self):
+        """
+        Just a mock of a functionality to dynamically returning:
+            - parser
+            - respective DB-connection-string
+            - and Device-ID
+        for a given topic.
+        """
+        self.parser_mapping = _SETTINGS
+        self.time_of_settings_update = time.time()
+
+    def get_parser(self, topic: str) -> Callable[[dict], Observation]:
+
+        time_lapsed = time.time() - self.time_of_settings_update
+
+        if time_lapsed > 60:
+            self.update_settings()
+
+        if topic not in _SETTINGS:
+            raise ValueError(f"no parser found for topic: {topic}")
+
+        return self.parser_mapping[topic]["parser"]
 
     def act(self, payload, client, userdata, message):
-        # NOTE: not yet working as the thing is not created as intended
-        # datastore = get_datastore(self._target_uri, "32036c37-ba4c-4271-8815-500023374b9e")
+
+        datastore = get_datastore_by_topic(message.topic)
+
         origin = f"{userdata['mqtt_broker']}/{message.topic}"
-        parser = get_parser(message.topic)
+        parser = self.get_parser(message.topic)
+
         observations = parser(payload, origin)
 
-        self.datastore.initiate_connection()
-        self.datastore.store_observations(observations)
-        self.datastore.finalize()
+        datastore.initiate_connection()
+        datastore.store_observations(observations)
+        datastore.finalize()

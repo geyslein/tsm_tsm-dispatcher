@@ -153,17 +153,15 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
     action.run_loop()
 
 @cli.command()
-@click.option("-t", "--target-uri", type=str, required=True, help="datastore uri")
-@click.option("-d", "--device-id", type=str, required=True, help="device uuid")
 @click.pass_context
-def parse_data(ctx, target_uri: str, device_id: uuid.UUID):
+def parse_data(ctx):
 
     topic = ctx.parent.params['topic']
     mqtt_broker = ctx.parent.params["mqtt_broker"]
     mqtt_user = ctx.parent.params["mqtt_user"][0]
     mqtt_password = ctx.parent.params["mqtt_password"][0]
 
-    action = MqttDatastreamAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri, device_id)
+    action = MqttDatastreamAction(topic, mqtt_broker, mqtt_user, mqtt_password)
 
     action.run_loop()
 
