@@ -34,8 +34,8 @@ def on_connect(client, userdata, flags, rc):
 
 
 def get_schema_name_from_topic(topic):
-    return topic.split(TOPIC_DELIMITER)[1]
+    return topic.split(TOPIC_DELIMITER)[0]
 
 
 def get_device_id_from_topic(topic):
-    return topic.split(TOPIC_DELIMITER)[2]
+    return topic.split(TOPIC_DELIMITER)[1]
