@@ -14,7 +14,7 @@ from tsm_datastore_lib.SqlAlchemyDatastore import SqlAlchemyDatastore
 from MqttHelper import get_schema_name_from_topic, get_device_id_from_topic
 
 
-def envimo_parser(payload: dict, origin: str) -> List[Observation]:
+def campbell_parser(payload: dict, origin: str) -> List[Observation]:
     # the basic data massage looked like this
     # {
     #     "type": "Feature",
@@ -85,5 +85,5 @@ class MqttDatastreamAction(AbstractAction):
     def __get_parser(self) -> Callable[[dict], Observation]:
         parser = self.datastore.sqla_thing.properties['default_parser']
 
-        if parser == 'envimo_parser':
-            return envimo_parser
+        if parser == 'campbell_parser':
+            return campbell_parser
