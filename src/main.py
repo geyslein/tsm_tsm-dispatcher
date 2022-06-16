@@ -153,15 +153,16 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
     action.run_loop()
 
 @cli.command()
+@click.option("-t", "--target-uri", type=str, help="datastore uri")
 @click.pass_context
-def parse_data(ctx):
+def parse_data(ctx, target_uri: str):
 
     topic = ctx.parent.params['topic']
     mqtt_broker = ctx.parent.params["mqtt_broker"]
     mqtt_user = ctx.parent.params["mqtt_user"][0]
     mqtt_password = ctx.parent.params["mqtt_password"][0]
 
-    action = MqttDatastreamAction(topic, mqtt_broker, mqtt_user, mqtt_password)
+    action = MqttDatastreamAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
 
     action.run_loop()
 

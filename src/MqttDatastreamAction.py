@@ -3,8 +3,6 @@
 
 from __future__ import annotations
 
-import time
-import uuid
 from typing import Dict, Callable, List
 from AbstractAction import AbstractAction
 
@@ -13,6 +11,7 @@ import paho.mqtt.client as mqtt
 from tsm_datastore_lib import get_datastore
 from tsm_datastore_lib.Observation import Observation
 from tsm_datastore_lib.SqlAlchemyDatastore import SqlAlchemyDatastore
+from MqttHelper import get_schema_name_from_topic, get_device_id_from_topic
 
 
 def envimo_parser(payload: dict, origin: str) -> List[Observation]:
@@ -45,61 +44,46 @@ def envimo_parser(payload: dict, origin: str) -> List[Observation]:
     return out
 
 
-# the parser/mapper 'database'
-_SETTINGS: Dict[str, Dict] = {
-    "seefo-envimo-cr6-test-001/state/cr6/18341/": {
-        "parser": envimo_parser,
-        "target_uri": "postgresql://myfirst6185a5b8462711ec910a125e5a40a845:d0ZZ9d3QSDZ6tXIZTnKRY1uVLKIc05GmQh8SA36M@localhost:5432/postgres",
-        "device_id": "057d8bba-40b3-11ec-a337-125e5a40a849"
-    }
-}
-
-
-def get_datastore_by_topic(topic: str):
-    target_uri = _SETTINGS[topic]["target_uri"]
-    device_id = _SETTINGS[topic]["device_id"]
-    return SqlAlchemyDatastore(target_uri, device_id)
-
-
 class MqttDatastreamAction(AbstractAction):
-    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password):
-        super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
-        self.parser_mapping = {}
-        self.time_of_settings_update = 0
-        self.update_settings()
+    def __init__(self, root_topic, mqtt_broker, mqtt_user, mqtt_password, target_uri):
+        super().__init__(root_topic, mqtt_broker, mqtt_user, mqtt_password)
 
-    def update_settings(self):
-        """
-        Just a mock of a functionality to dynamically returning:
-            - parser
-            - respective DB-connection-string
-            - and Device-ID
-        for a given topic.
-        """
-        self.parser_mapping = _SETTINGS
-        self.time_of_settings_update = time.time()
-
-    def get_parser(self, topic: str) -> Callable[[dict], Observation]:
-
-        time_lapsed = time.time() - self.time_of_settings_update
-
-        if time_lapsed > 60:
-            self.update_settings()
-
-        if topic not in _SETTINGS:
-            raise ValueError(f"no parser found for topic: {topic}")
-
-        return self.parser_mapping[topic]["parser"]
+        self.target_uri = target_uri
+        self.device_id = ''
+        self.schema = ''
+        self.datastore = None
 
     def act(self, payload, client, userdata, message):
-
-        datastore = get_datastore_by_topic(message.topic)
-
         origin = f"{userdata['mqtt_broker']}/{message.topic}"
-        parser = self.get_parser(message.topic)
+
+        self.__prepare_datastore_by_topic(message.topic)
+
+        parser = self.__get_parser()
 
         observations = parser(payload, origin)
 
-        datastore.initiate_connection()
-        datastore.store_observations(observations)
-        datastore.finalize()
+        self.datastore.store_observations(observations)
+        self.datastore.finalize()
+
+    def __prepare_datastore_by_topic(self, topic):
+        schema = get_schema_name_from_topic (topic)
+        device_id = get_device_id_from_topic(topic)
+
+        if self.datastore is None:
+            self.datastore = SqlAlchemyDatastore(self.target_uri, device_id, schema)
+            return
+
+        if self.schema != schema:
+            self.schema = schema
+
+        if self.device_id != device_id:
+            self.device_id = device_id
+            self.datastore.switch_thing(device_id)
+
+        self.datastore.initiate_connection(self.schema)
+
+    def __get_parser(self) -> Callable[[dict], Observation]:
+        parser = self.datastore.sqla_thing.properties['default_parser']
+
+        if parser == 'envimo_parser':
+            return envimo_parser

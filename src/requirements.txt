@@ -7,4 +7,4 @@ paho-mqtt==1.6.1
 --index-url https://git.ufz.de/api/v4/projects/2959/packages/pypi/simple
 minio-cli-wrapper>=0.0.12
 --extra-index-url https://git.ufz.de/api/v4/projects/2886/packages/pypi/simple
-tsm-datastore-lib>=0.2.3
+tsm-datastore-lib>=0.3.1

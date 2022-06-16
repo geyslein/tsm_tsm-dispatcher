@@ -4,6 +4,8 @@ from AvroSchemaValidator import validate_avro_schema
 from fastavro._validate_common import ValidationError
 
 
+TOPIC_DELIMITER = '/'
+
 def on_message(client, userdata, message):
     content = str(message.payload.decode("utf-8"))
     parsed_content = json.loads(content)
@@ -19,8 +21,10 @@ def on_message(client, userdata, message):
     else:
         logging.warning("Schema of received message does not match with given avro schema!")
 
+
 def on_log(client, userdata, level, buf):
     logging.info("{}".format(buf))
+
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -28,3 +32,10 @@ def on_connect(client, userdata, flags, rc):
     else:
         logging.info("Failed to connect, return code %d\n", rc)
 
+
+def get_schema_name_from_topic(topic):
+    return topic.split(TOPIC_DELIMITER)[1]
+
+
+def get_device_id_from_topic(topic):
+    return topic.split(TOPIC_DELIMITER)[2]
