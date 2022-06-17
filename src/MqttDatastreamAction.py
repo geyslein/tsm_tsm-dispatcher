@@ -49,8 +49,6 @@ class MqttDatastreamAction(AbstractAction):
         super().__init__(root_topic, mqtt_broker, mqtt_user, mqtt_password)
 
         self.target_uri = target_uri
-        self.device_id = ''
-        self.schema = ''
         self.datastore = None
 
     def act(self, payload, client, userdata, message):
@@ -59,7 +57,6 @@ class MqttDatastreamAction(AbstractAction):
         self.__prepare_datastore_by_topic(message.topic)
 
         parser = self.__get_parser()
-
         observations = parser(payload, origin)
 
         self.datastore.store_observations(observations)
@@ -69,18 +66,7 @@ class MqttDatastreamAction(AbstractAction):
         schema = get_schema_name_from_topic (topic)
         device_id = get_device_id_from_topic(topic)
 
-        if self.datastore is None:
-            self.datastore = SqlAlchemyDatastore(self.target_uri, device_id, schema)
-            return
-
-        if self.schema != schema:
-            self.schema = schema
-
-        if self.device_id != device_id:
-            self.device_id = device_id
-            self.datastore.switch_thing(device_id)
-
-        self.datastore.initiate_connection(self.schema)
+        self.datastore = SqlAlchemyDatastore(self.target_uri, device_id, schema)
 
     def __get_parser(self) -> Callable[[dict], Observation]:
         parser = self.datastore.sqla_thing.properties['default_parser']
