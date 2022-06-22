@@ -3,8 +3,6 @@ import paho.mqtt.client as mqtt
 from abc import ABC, abstractmethod
 from MqttHelper import on_message, on_log, on_connect
 
-logging.basicConfig(format='%(levelname)s: (%(asctime)s) %(message)s', datefmt='%d.%m.%y %H:%M:%S', level=logging.INFO)
-
 
 class AbstractAction(ABC):
 
