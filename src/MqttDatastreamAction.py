@@ -11,8 +11,8 @@ import paho.mqtt.client as mqtt
 from tsm_datastore_lib import get_datastore
 from tsm_datastore_lib.Observation import Observation
 from tsm_datastore_lib.SqlAlchemyDatastore import SqlAlchemyDatastore
-from MqttHelper import get_schema_name_from_topic, get_device_id_from_topic
 
+TOPIC_DELIMITER = '/'
 
 def campbell_cr6(payload: dict, origin: str) -> List[Observation]:
     # the basic data massage looked like this
@@ -65,8 +65,11 @@ class MqttDatastreamAction(AbstractAction):
         self.datastore.insert_commit_chunk()
 
     def __prepare_datastore_by_topic(self, topic):
-        schema = get_schema_name_from_topic(topic)
-        device_id = get_device_id_from_topic(topic)
+        """
+        :param topic: e.g. 'mqtt_ingest/seefo_envimo_cr6_test_002/7ff34ed2-5e56-11ec-9b0a-54e1ad7c5c19'
+        """
+        schema = topic.split(TOPIC_DELIMITER)[1]
+        device_id = topic.split(TOPIC_DELIMITER)[2]
 
         if self.datastore is None:
             self.datastore = SqlAlchemyDatastore(self.target_uri, device_id, schema)
