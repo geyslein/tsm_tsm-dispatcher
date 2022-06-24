@@ -33,9 +33,17 @@ def on_connect(client, userdata, flags, rc):
         logging.info("Failed to connect, return code %d\n", rc)
 
 
-def get_schema_name_from_topic(topic):
-    return topic.split(TOPIC_DELIMITER)[0]
-
-
-def get_device_id_from_topic(topic):
+def get_schema_name_from_topic(topic: str) -> str:
+    """
+    :param topic: e.g. 'mqtt_ingest/seefo_envimo_cr6_test_002/7ff34ed2-5e56-11ec-9b0a-54e1ad7c5c19'
+    :return: schema (name)
+    """
     return topic.split(TOPIC_DELIMITER)[1]
+
+
+def get_device_id_from_topic(topic: str) -> str:
+    """
+    :param topic: e.g. 'mqtt_ingest/seefo_envimo_cr6_test_002/7ff34ed2-5e56-11ec-9b0a-54e1ad7c5c19'
+    :return: device_id (UUID)
+    """
+    return topic.split(TOPIC_DELIMITER)[2]
