@@ -53,13 +53,14 @@ class MqttDatastreamAction(AbstractAction):
         self.schema = ''
         self.datastore = None
 
-    def act(self, payload, client, userdata, message):
-        origin = f"{userdata['mqtt_broker']}/{message.topic}"
+    def act(self, message: dict):
+        topic = message.get("topic")
+        origin = f"{self.mqtt_broker}/{topic}"
 
-        self.__prepare_datastore_by_topic(message.topic)
+        self.__prepare_datastore_by_topic(topic)
 
         parser = self.__get_parser()
-        observations = parser(payload, origin)
+        observations = parser(message, origin)
 
         self.datastore.store_observations(observations)
         self.datastore.insert_commit_chunk()

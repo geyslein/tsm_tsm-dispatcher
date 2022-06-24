@@ -28,7 +28,7 @@ class ProcessNewFileAction(AbstractAction):
         self.request = request.Request(scheduler_settings.get('url'), method="POST")
         self.request.add_header('Content-Type', 'application/json')
 
-    def act(self, message: dict, *args, **kwargs):
+    def act(self, message: dict):
 
         # skip all messages that are not a put event
         if message['EventName'] != 's3:ObjectCreated:Put':
