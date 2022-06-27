@@ -62,7 +62,7 @@ class MqttDatastreamAction(AbstractAction):
 
         datastore = self.__prepare_datastore_by_topic(message.topic)
 
-        parser = self.__get_parser()
+        parser = self.__get_parser(datastore)
         observations = parser(payload, origin)
 
         datastore.store_observations(observations)
@@ -98,8 +98,8 @@ class MqttDatastreamAction(AbstractAction):
 
         return datastore
 
-    def __get_parser(self) -> Callable[[dict], Observation]:
-        parser = self.datastore.sqla_thing.properties['default_parser']
+    def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[[dict], Observation]:
+        parser = datastore.sqla_thing.properties['default_parser']
 
         if parser == 'campbell_cr6':
             return campbell_cr6
