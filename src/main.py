@@ -52,8 +52,6 @@ __version__ = '0.0.1'
 @click.pass_context
 def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
 
-    # @todo remove topic from cli parameters and set it static per action class
-
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
 
