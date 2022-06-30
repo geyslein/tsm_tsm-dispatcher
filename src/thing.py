@@ -6,10 +6,10 @@ class Database:
 
     @staticmethod
     def get_instance(message: dict):
-        if 'password' and 'username' and 'url' in message.keys():
-            return Database(message.get('username'), message.get('password'), message.get('url'))
-        else:
-            raise ValueError('Unable to get Database instance from message "{}"'.format(message))
+        try:
+            return Database(message['username'], message['password'], message['url'])
+        except KeyError:
+            raise ValueError(f'Unable to get Database instance from message "{message}"')
 
 
 class Project:
@@ -19,10 +19,10 @@ class Project:
 
     @staticmethod
     def get_instance(message: dict):
-        if 'uuid' and 'name' in message.keys():
-            return Project(message.get('uuid'), message.get('name'))
-        else:
-            raise ValueError('Unable to get project instance from message "{}"'.format(message))
+        try:
+            return Project(message['uuid'], message['name'])
+        except KeyError:
+            raise ValueError(f'Unable to get project instance from message "{message}"')
 
 
 class RawDataStorage:
@@ -33,15 +33,17 @@ class RawDataStorage:
 
     @staticmethod
     def get_instance(message: dict):
-        if 'username' and 'password' and 'bucket_name' in message.keys():
+        try:
             return RawDataStorage(
-                message.get('username'),
-                message.get('password'),
-                message.get('bucket_name')
+                message['username'],
+                message['password'],
+                message['bucket_name']
             )
-        else:
-            raise ValueError('Unable to get raw data storage instance from message "{}"'.format(
-                message))
+        except KeyError:
+            raise ValueError(
+                f'Unable to get raw data storage '
+                f'instance from message "{message}"'
+            )
 
 
 class Thing:
@@ -63,16 +65,16 @@ class Thing:
 
     @staticmethod
     def get_instance(message: dict):
-        if 'uuid' and 'name' and 'database' and 'project' and 'raw_data_storage' in message.keys():
+        try:
             return Thing(
-                message.get('uuid'),
-                message.get('name'),
-                Project.get_instance(message.get('project')),
-                Database.get_instance(message.get('database')),
-                RawDataStorage.get_instance(message.get('raw_data_storage')),
-                desc=message.get('description'),
-                properties=message.get('properties'),
+                message['uuid'],
+                message['name'],
+                Project.get_instance(message['project']),
+                Database.get_instance(message['database']),
+                RawDataStorage.get_instance(message['raw_data_storage']),
+                desc=message['description'],
+                properties=message['properties'],
             )
-        else:
-            raise ValueError('Unable to get thing instance from message "{}"'.format(message))
+        except KeyError:
+            raise ValueError(f'Unable to get thing instance from message "{message}"')
 
