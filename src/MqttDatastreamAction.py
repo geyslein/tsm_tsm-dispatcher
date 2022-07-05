@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 from collections import OrderedDict
 from typing import Dict, Callable, List
 from AbstractAction import AbstractAction
@@ -14,6 +15,7 @@ from tsm_datastore_lib.Observation import Observation
 from tsm_datastore_lib.SqlAlchemyDatastore import SqlAlchemyDatastore
 
 TOPIC_DELIMITER = '/'
+
 
 def campbell_cr6(payload: dict, origin: str) -> List[Observation]:
     # the basic data massage looked like this
@@ -60,7 +62,7 @@ class MqttDatastreamAction(AbstractAction):
     def act(self, payload, client, userdata, message):
         origin = f"{userdata['mqtt_broker']}/{message.topic}"
 
-        datastore = self.__prepare_datastore_by_topic(message.topic)
+        datastore = self.__get_datastore_by_topic(message.topic)
 
         parser = self.__get_parser(datastore)
         observations = parser(payload, origin)
@@ -68,37 +70,17 @@ class MqttDatastreamAction(AbstractAction):
         datastore.store_observations(observations)
         datastore.insert_commit_chunk()
 
-    def __prepare_datastore_by_topic(self, topic):
+    @lru_cache(maxsize=DATASTORE_CACHE_SIZE)
+    def __get_datastore_by_topic(self, topic):
         """
         :param topic: e.g. 'mqtt_ingest/seefo_envimo_cr6_test_002/7ff34ed2-5e56-11ec-9b0a-54e1ad7c5c19'
         """
-        schema = topic.split(TOPIC_DELIMITER)[1]
-        device_id = topic.split(TOPIC_DELIMITER)[2]
-
-        # Per topic LRU (least recently used) cache of database sessions
-        # Its per topic to recognize changes of schema names and ids
-
-        # Get the datastore from the cache if it exists
-        if self.datastores.get(topic):
-            datastore = self.datastores.pop(topic)
-        # Or create a new datastore instance
-        else:
-            datastore = SqlAlchemyDatastore(self.target_uri, device_id, schema)
-
-        # Put the datastore instance back to the cache
+        schema, device_id = topic.split(TOPIC_DELIMITER)[:2]
+        datastore = SqlAlchemyDatastore(self.target_uri, device_id, schema)
         self.datastores[topic] = datastore
-
-        # Clear the oldest entry if the max length is reached
-        if len(self.datastores) > self.DATASTORE_CACHE_SIZE:
-            # Get the item, which was added the longest time ago
-            # `last=False` means, it should not pop the item which was added at least
-            out_of_age_datastore = self.datastores.popitem(last=False)[1]
-            # Finalize it to commit pending data and close the connection
-            out_of_age_datastore.finalize()
-
         return datastore
 
-    def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[[dict], Observation]:
+    def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[[dict, str], List[Observation]]:
         parser = datastore.sqla_thing.properties['default_parser']
 
         if parser == 'campbell_cr6':
