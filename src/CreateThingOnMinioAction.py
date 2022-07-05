@@ -21,7 +21,7 @@ class CreateThingOnMinioAction(AbstractAction):
             secret_key=minio_settings.get('minio_secure_key')
         )
 
-    def act(self, message: dict, *args, **kwargs):
+    def act(self, message: dict):
 
         thing = Thing.get_instance(message)
 
