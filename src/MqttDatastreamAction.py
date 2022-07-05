@@ -59,8 +59,9 @@ class MqttDatastreamAction(AbstractAction):
         self.target_uri = target_uri
         self.datastores: OrderedDict[SqlAlchemyDatastore] = OrderedDict()
 
-    def act(self, payload, client, userdata, message):
-        origin = f"{userdata['mqtt_broker']}/{message.topic}"
+    def act(self, message: dict):
+        topic = message.get("topic")
+        origin = f"{self.mqtt_broker}/{topic}"
 
         datastore = self.__get_datastore_by_topic(message.topic)
 
