@@ -63,10 +63,10 @@ class MqttDatastreamAction(AbstractAction):
         topic = message.get("topic")
         origin = f"{self.mqtt_broker}/{topic}"
 
-        datastore = self.__get_datastore_by_topic(message.topic)
+        datastore = self.__get_datastore_by_topic(topic)
 
         parser = self.__get_parser(datastore)
-        observations = parser(payload, origin)
+        observations = parser(message, origin)
 
         datastore.store_observations(observations)
         datastore.insert_commit_chunk()
