@@ -4,8 +4,8 @@ from fastavro.schema import load_schema
 from fastavro import validate
 from fastavro._validate_common import ValidationError
 
-def validate_avro_schema(message, has_schema, schema_file):
-    if has_schema:
+def validate_avro_schema(message, schema_file):
+    if schema_file:
         schema = load_schema(schema_file)
         try:
             validate(message, schema)
