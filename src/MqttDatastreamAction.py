@@ -76,7 +76,8 @@ class MqttDatastreamAction(AbstractAction):
         """
         :param topic: e.g. 'mqtt_ingest/seefo_envimo_cr6_test_002/7ff34ed2-5e56-11ec-9b0a-54e1ad7c5c19'
         """
-        schema, device_id = topic.split(TOPIC_DELIMITER)[:2]
+        schema = topic.split(TOPIC_DELIMITER)[1]
+        device_id = topic.split(TOPIC_DELIMITER)[2]
         datastore = SqlAlchemyDatastore(self.target_uri, device_id, schema)
         self.datastores[topic] = datastore
         return datastore
