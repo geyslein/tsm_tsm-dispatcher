@@ -52,8 +52,6 @@ black:
 #    - python3 -m unittest discover test
 
 build-images:
-  tags:
-    - hifis
   stage: build
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -66,8 +64,6 @@ build-images:
 
 integration-test:
   stage: test
-  tags:
-    - hifis
   image:
     name: ${IMAGE_URL}:${CI_JOB_DATE}
     entrypoint: [""]
