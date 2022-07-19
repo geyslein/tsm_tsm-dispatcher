@@ -62,7 +62,7 @@ class CreateThingOnMinioAction(AbstractAction):
             try:
                 self.mcw.make_locked_bucket(bucket_name)
             except Exception as e:
-                raise ValueError('Unable to create bucket "{}": {}'.format(bucket_name, e))
+                raise ValueError(f'Unable to create bucket "{bucket_name}": {e}')
         # set bucket retention config
         self.mcw.set_bucket_100y_retention(bucket_name)
 

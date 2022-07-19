@@ -33,27 +33,22 @@ __version__ = '0.0.1'
               help='MQTT broker to connect',
               required=True,
               show_envvar=True,
-              multiple=True,
               envvar='MQTT_BROKER'
-)
+              )
 @click.option('mqtt_user', '--mqtt-user', '-u',
               help='MQTT user',
               required=True,
               show_envvar=True,
-              multiple=True,
               envvar='MQTT_USER'
-)
+              )
 @click.option('mqtt_password', '--mqtt-password', '-p',
               help='MQTT password',
               required=True,
               show_envvar=True,
-              multiple=True,
               envvar='MQTT_PASSWORD'
-)
-
+              )
 @click.pass_context
 def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
-
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -75,14 +70,15 @@ def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
     help='Use to disable TLS ("HTTPS://") for testing. Do not disable it on production!'
 )
 @click.pass_context
-def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, minio_secure_key,
+def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key,
+                                             minio_secure_key,
                                              minio_secure):
     topic = ctx.parent.params['topic']
     mqtt_broker = ctx.parent.params["mqtt_broker"]
-    mqtt_user = ctx.parent.params["mqtt_user"][0]
-    mqtt_password = ctx.parent.params["mqtt_password"][0]
+    mqtt_user = ctx.parent.params["mqtt_user"]
+    mqtt_password = ctx.parent.params["mqtt_password"]
 
-    logging.info('MQTT broker to connect: {}'.format(mqtt_broker))
+    logging.info(f'MQTT broker to connect: {mqtt_broker}')
 
     action = CreateThingOnMinioAction(topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings={
         'minio_url': minio_url,
@@ -103,8 +99,8 @@ def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key, m
 def run_create_database_schema_action_service(ctx, database_url):
     topic = ctx.parent.params['topic']  # thing_created
     mqtt_broker = ctx.parent.params["mqtt_broker"]
-    mqtt_user = ctx.parent.params["mqtt_user"][0]
-    mqtt_password = ctx.parent.params["mqtt_password"][0]
+    mqtt_user = ctx.parent.params["mqtt_user"]
+    mqtt_password = ctx.parent.params["mqtt_password"]
 
     action = CreateThingInDatabaseAction(topic, mqtt_broker, mqtt_user, mqtt_password, database_settings={
         'url': database_url,
@@ -133,10 +129,10 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
                                  scheduler_endpoint_url, minio_secure):
     topic = ctx.parent.params['topic']
     mqtt_broker = ctx.parent.params["mqtt_broker"]
-    mqtt_user = ctx.parent.params["mqtt_user"][0]
-    mqtt_password = ctx.parent.params["mqtt_password"][0]
+    mqtt_user = ctx.parent.params["mqtt_user"]
+    mqtt_password = ctx.parent.params["mqtt_password"]
 
-    logging.info('MQTT broker to connect: {}'.format(mqtt_broker))
+    logging.info(f'MQTT broker to connect: {mqtt_broker}')
 
     action = ProcessNewFileAction(topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings={
         'minio_url': minio_url,
@@ -150,15 +146,15 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
     # loop while waiting for messages
     action.run_loop()
 
+
 @cli.command()
 @click.option("-t", "--target-uri", type=str, help="datastore uri")
 @click.pass_context
 def parse_data(ctx, target_uri: str):
-
     topic = ctx.parent.params['topic']
     mqtt_broker = ctx.parent.params["mqtt_broker"]
-    mqtt_user = ctx.parent.params["mqtt_user"][0]
-    mqtt_password = ctx.parent.params["mqtt_password"][0]
+    mqtt_user = ctx.parent.params["mqtt_user"]
+    mqtt_password = ctx.parent.params["mqtt_password"]
 
     action = MqttDatastreamAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
 
