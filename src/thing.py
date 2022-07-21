@@ -1,15 +1,20 @@
+from __future__ import annotations
+
+
 class Database:
-    def __init__(self, username: str, password: str, url: str) -> None:
+    def __init__(self, username: str, password: str, url: str):
         self.username = username
         self.password = password
         self.url = url
 
-    @staticmethod
-    def get_instance(message: dict):
+    @classmethod
+    def get_instance(cls, message: dict) -> Database:
         try:
-            return Database(message['username'], message['password'], message['url'])
+            return cls(message["username"], message["password"], message["url"])
         except KeyError:
-            raise ValueError(f'Unable to get Database instance from message "{message}"')
+            raise ValueError(
+                f'Unable to get Database instance from message "{message}"'
+            )
 
 
 class Project:
@@ -17,64 +22,60 @@ class Project:
         self.uuid = uuid
         self.name = name
 
-    @staticmethod
-    def get_instance(message: dict):
+    @classmethod
+    def get_instance(cls, message: dict) -> Project:
         try:
-            return Project(message['uuid'], message['name'])
+            return cls(message["uuid"], message["name"])
         except KeyError:
-            raise ValueError(f'Unable to get project instance from message "{message}"')
+            raise ValueError(f'Unable to get Project instance from message "{message}"')
 
 
 class RawDataStorage:
-    def __init__(self, username: str, password: str, bucket_name: str) -> None:
+    def __init__(self, username: str, password: str, bucket_name: str):
         self.username = username
         self.password = password
         self.bucket_name = bucket_name
 
-    @staticmethod
-    def get_instance(message: dict):
+    @classmethod
+    def get_instance(cls, message: dict) -> RawDataStorage:
         try:
-            return RawDataStorage(
-                message['username'],
-                message['password'],
-                message['bucket_name']
-            )
+            return cls(message["username"], message["password"], message["bucket_name"])
         except KeyError:
             raise ValueError(
-                f'Unable to get raw data storage '
-                f'instance from message "{message}"'
+                f'Unable to get RawDataStorage instance from message "{message}"'
             )
 
 
 class Thing:
-    def __init__(self, uuid: str, name: str, project: Project, database: Database,
-                 raw_data_storage: RawDataStorage, desc: str = '', properties: dict = {}):
+    def __init__(
+        self,
+        uuid: str,
+        name: str,
+        project: Project,
+        database: Database,
+        raw_data_storage: RawDataStorage,
+        description: str,
+        properties: dict,
+    ):
         self.uuid = uuid
         self.name = name
         self.project = project
         self.database = database
         self.raw_data_storage = raw_data_storage
-        self.description = desc
+        self.description = description
         self.properties = properties
 
-    def set_description(self, desc: str):
-        self.description = desc
-
-    def set_properties(self, properties: dict):
-        self.properties = properties
-
-    @staticmethod
-    def get_instance(message: dict):
+    @classmethod
+    def get_instance(cls, message: dict) -> Thing:
         try:
-            return Thing(
-                message['uuid'],
-                message['name'],
-                Project.get_instance(message['project']),
-                Database.get_instance(message['database']),
-                RawDataStorage.get_instance(message['raw_data_storage']),
-                desc=message['description'],
-                properties=message['properties'],
+            return cls(
+                message["uuid"],
+                message["name"],
+                Project.get_instance(message["project"]),
+                Database.get_instance(message["database"]),
+                RawDataStorage.get_instance(message["raw_data_storage"]),
+                message["description"],
+                message["properties"],
             )
         except KeyError:
-            raise ValueError(f'Unable to get thing instance from message "{message}"')
-
+            raise ValueError(f'Unable to get Thing instance from message "{message}"')
