@@ -20,7 +20,7 @@ CREATE TABLE "journal"
     "id"           bigserial    NOT NULL PRIMARY KEY,
     "timestamp"    timestamp    NOT NULL,
     "level"        varchar(30)  NOT NULL,
-    "message"      varchar(200) NULL,
+    "message"      text         NULL,
     "extra"        jsonb        NULL,
     "thing_id"     bigint       NOT NULL
 );
