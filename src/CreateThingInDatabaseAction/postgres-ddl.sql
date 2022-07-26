@@ -64,8 +64,6 @@ CREATE TABLE "observation"
 SELECT public.create_hypertable('observation', 'result_time');
 
 ALTER TABLE "journal"
-    ADD CONSTRAINT "journal_thing_id_timestamp_uniq" UNIQUE ("thing_id", "timestamp");
-ALTER TABLE "journal"
     ADD CONSTRAINT "journal_thing_id_fk_thing_id" FOREIGN KEY ("thing_id") REFERENCES "thing" ("id") DEFERRABLE INITIALLY DEFERRED;
 CREATE INDEX "journal_thing_id" ON "journal" ("thing_id");
 
