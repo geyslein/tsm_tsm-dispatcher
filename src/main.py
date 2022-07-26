@@ -10,6 +10,7 @@ from CreateThingOnMinioAction import CreateThingOnMinioAction
 from ProcessNewFileAction import ProcessNewFileAction
 from CreateThingInDatabaseAction import CreateThingInDatabaseAction
 from MqttDatastreamAction import MqttDatastreamAction
+from MqttLoggingAction import MqttLoggingAction
 
 __version__ = '0.0.1'
 
@@ -157,6 +158,20 @@ def parse_data(ctx, target_uri: str):
     mqtt_password = ctx.parent.params["mqtt_password"]
 
     action = MqttDatastreamAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
+
+    action.run_loop()
+
+
+@cli.command()
+@click.option("-t", "--target-uri", type=str, help="datastore uri")
+@click.pass_context
+def persist_log_messages_in_database_service(ctx, target_uri: str):
+    topic = ctx.parent.params['topic']
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"]
+    mqtt_password = ctx.parent.params["mqtt_password"]
+
+    action = MqttLoggingAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
 
     action.run_loop()
 
