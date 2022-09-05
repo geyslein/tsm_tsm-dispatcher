@@ -21,7 +21,7 @@ class CreateThingInDatabaseAction(AbstractAction):
 
         # 1. Check, if there is already a database user for this project
         if not self.user_exists(thing):
-            # 2.1 Create one of not
+            # 2.1 Create one if not
             self.create_user(thing)
             # 2.2 Create schema
             self.create_schema(thing)

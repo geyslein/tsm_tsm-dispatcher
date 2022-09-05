@@ -1,0 +1,9 @@
+{
+    "name": "log_message",
+    "type": "record",
+    "fields": [
+        {"name": "timestamp", "type": "string"},
+        {"name": "level", "type": "string"},
+        {"name": "message", "type": "string"},
+    ],
+}
