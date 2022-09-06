@@ -9,7 +9,7 @@ def on_message(client, userdata, message):
     parsed_content = json.loads(content)
     if validate_avro_schema(parsed_content, userdata['schema_file']):
         logging.info(
-            "Received message on topic '{topic}' with QoS {qos}!".format(topic=message.topic, qos=message.qos))
+            f"Received message on topic '{message.topic}' with QoS {message.qos}!")
         try:
             parsed_content["topic"] = message.topic
             userdata['act'](parsed_content)
@@ -22,11 +22,11 @@ def on_message(client, userdata, message):
 
 
 def on_log(client, userdata, level, buf):
-    logging.info("{}".format(buf))
+    logging.debug(f"{buf}")
 
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         logging.info(f"Connected to {userdata['mqtt_broker']}!")
     else:
-        logging.info(f"Failed to connect, return code {rc}\n")
+        logging.error(f"Failed to connect, return code {rc}\n")

@@ -51,7 +51,10 @@ __version__ = '0.0.1'
 @click.pass_context
 def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
     if verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
+    logging.basicConfig(level=level)
 
 
 @cli.command()
@@ -88,7 +91,7 @@ def run_create_thing_on_minio_action_service(ctx, minio_url, minio_access_key,
         'minio_secure': minio_secure
     })
 
-    # loop while waiting for messages
+    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
@@ -109,6 +112,7 @@ def run_create_database_schema_action_service(ctx, database_url):
         # 'pass': database_pass
     })
 
+    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
@@ -135,16 +139,20 @@ def run_process_new_file_service(ctx, minio_url, minio_access_key, minio_secure_
 
     logging.info(f'MQTT broker to connect: {mqtt_broker}')
 
-    action = ProcessNewFileAction(topic, mqtt_broker, mqtt_user, mqtt_password, minio_settings={
-        'minio_url': minio_url,
-        'minio_access_key': minio_access_key,
-        'minio_secure_key': minio_secure_key,
-        'minio_secure': minio_secure
-    }, scheduler_settings={
-        "url": scheduler_endpoint_url
-    })
+    action = ProcessNewFileAction(
+        topic, mqtt_broker, mqtt_user, mqtt_password,
+        minio_settings={
+            'minio_url': minio_url,
+            'minio_access_key': minio_access_key,
+            'minio_secure_key': minio_secure_key,
+            'minio_secure': minio_secure
+        },
+        scheduler_settings={
+            "url": scheduler_endpoint_url
+        }
+    )
 
-    # loop while waiting for messages
+    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
@@ -159,6 +167,7 @@ def parse_data(ctx, target_uri: str):
 
     action = MqttDatastreamAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
 
+    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
@@ -173,6 +182,7 @@ def persist_log_messages_in_database_service(ctx, target_uri: str):
 
     action = MqttLoggingAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
 
+    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
