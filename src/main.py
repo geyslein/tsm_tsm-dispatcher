@@ -58,11 +58,7 @@ def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
 
 
 @cli.command()
-@click.argument(
-    'minio_url',
-    type=str,
-    envvar='MINIO_URL'
-)
+@click.argument('minio_url', type=str, envvar='MINIO_URL')
 @click.argument('minio_access_key', type=str, envvar='MINIO_ACCESS_KEY')
 @click.argument('minio_secure_key', type=str, envvar='MINIO_SECURE_KEY')
 @click.option(
