@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim as base
+FROM debian:bullseye-slim as base
 
 ARG BUILD_DATE
 ARG VCS_REF
