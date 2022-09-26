@@ -67,11 +67,7 @@ class CreateThingOnMinioAction(AbstractAction):
         self.mcw.set_bucket_100y_retention(bucket_name)
 
         # enable bucket notifications
-        try:
-            self.mcw.enable_bucket_notification(bucket_name)
-        except MinIoClientError:
-            # Bucket notification already set
-            pass
+        self.mcw.enable_bucket_notification(bucket_name)
 
         # set bucked tags
         self.mcw.set_bucket_tags(bucket_name, {
