@@ -75,4 +75,4 @@ class ProcessNewFileAction(AbstractAction):
             self.minio.set_object_tags(bucket_name, filename, object_tags)
 
         except Exception as e:
-            pass
+            logging.error(f"{self.__class__.__name__}", exc_info=e)
