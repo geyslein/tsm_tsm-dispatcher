@@ -20,15 +20,32 @@
      "fields": [
        {"name": "name", "type": "string"},
        {"name": "uuid", "type": "string"}]}]},
-  {"name": "raw_data_storage",
-   "type": [
-     {"name": "raw_data_storage",
-     "type": "record",
-     "namespace": "thing_created_event",
-     "fields": [
-       {"name": "bucket_name", "type": "string"},
-       {"name": "password", "type": "string"},
-       {"name": "username", "type": "string"}]}]},
+   {
+     "name": "raw_data_storage",
+     "type": [
+       {
+         "name": "raw_data_storage",
+         "type": "record",
+         "namespace": "thing_created_event",
+         "fields": [
+           {
+             "name": "bucket_name",
+             "type": "string"
+           },
+           {
+             "name": "password",
+             "type": "string"
+           },
+           {
+             "name": "username",
+             "type": "string"
+           }
+         ]
+       },
+       "null"
+     ],
+     "default": null
+   },
   {"name": "properties",
    "type": [
      {"name": "properties",
