@@ -83,6 +83,44 @@
       ]
     },
     {
+      "name": "mqtt_authentication_credentials",
+      "type": [
+        {
+          "name": "mqtt_authentication_credentials",
+          "type": "record",
+          "namespace": "thing_created_event",
+          "fields": [
+            {
+              "name": "username",
+              "type": "string"
+            },
+            {
+              "name": "password",
+              "type": "string"
+            },
+            {
+              "name": "description",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "properties",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            }
+          ]
+        },
+        "null"
+      ],
+      "default": null
+    },
+    {
       "name": "properties",
       "type": [
         {
