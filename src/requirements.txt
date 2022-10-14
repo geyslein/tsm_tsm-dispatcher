@@ -4,6 +4,6 @@ pwgen>=0.8.2.post0
 fastavro==1.4.9
 paho-mqtt==1.6.1
 --index-url https://git.ufz.de/api/v4/projects/2959/packages/pypi/simple
-minio-cli-wrapper>=0.0.12
+minio-cli-wrapper>=0.0.14
 --extra-index-url https://git.ufz.de/api/v4/projects/2886/packages/pypi/simple
 tsm-datastore-lib>=0.3.1

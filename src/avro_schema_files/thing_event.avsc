@@ -1,26 +1,63 @@
 {"name": "thing_created_event",
   "type": "record",
- "fields": [
-   {"name": "uuid", "type": "string"},
-   {"name": "name", "type": "string"},
-   {"name": "database",
-   "type": [
-     {"name": "database",
-     "type": "record",
-     "namespace": "thing_created_event",
-     "fields": [
-       {"name": "password", "type": "string"},
-       {"name": "url", "type": "string"},
-       {"name": "username", "type": "string"}]}]},
-  {"name": "project",
-   "type": [
-     {"name": "project",
-     "type": "record",
-     "namespace": "thing_created_event",
-     "fields": [
-       {"name": "name", "type": "string"},
-       {"name": "uuid", "type": "string"}]}]},
-   {
+  "fields": [
+    {
+      "name": "uuid",
+      "type": "string"
+    },
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "description",
+      "type": "string"
+    },
+    {
+      "name": "database",
+      "type": [
+        {
+          "name": "database",
+          "type": "record",
+          "namespace": "thing_created_event",
+          "fields": [
+            {
+              "name": "password",
+              "type": "string"
+            },
+            {
+              "name": "url",
+              "type": "string"
+            },
+            {
+              "name": "username",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "project",
+      "type": [
+        {
+          "name": "project",
+          "type": "record",
+          "namespace": "thing_created_event",
+          "fields": [
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "uuid",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
      "name": "raw_data_storage",
      "type": [
        {
@@ -45,59 +82,204 @@
        "null"
      ],
      "default": null
-   },
-  {"name": "properties",
-   "type": [
-     {"name": "properties",
-     "type": "record",
-     "namespace": "thing_created_event",
-     "fields": [
-       {"name": "default_parser", "type": "string"},
-       {"name": "parsers",
-       "type": [
-         {"type": "array",
-         "items": [
-           {"name": "parsers",
-           "type": "record",
-           "namespace": "thing_created_event.properties",
-           "fields": [
-             {"name": "type", "type": "string"},
-             {"name": "settings",
-             "type": [
-               {"name": "settings",
-               "type": "record",
-               "namespace": "thing_created_event.properties.parsers",
-               "fields": [
-                 {"name": "delimiter", "type": ["string", "null"]},
-                 {"name": "footlines", "type": ["long", "null"]},
-                 {"name": "header", "type": ["long", "null"]},
-                 {"name": "headlines", "type": ["long", "null"]},
-                 {"name": "skipfooter", "type": ["long", "null"]},
-                 {"name": "timestamp_format", "type": ["string", "null"]},
-                 {"name": "timestamp_column", "type": ["long", "null"]},
-                 {"name": "timestamp",
-                 "type": [
-                   {"name": "timestamp",
-                   "type": "record",
-                   "namespace": "thing_created_event.properties.parsers.settings",
-                   "fields": [
-                     {"name": "date",
-                     "type": [
-                       {"name": "date",
-                       "type": "record",
-                       "namespace": "thing_created_event.properties.parsers.settings.timestamp",
-                       "fields": [
-                         {"name": "pattern", "type": "string"},
-                        {"name": "position", "type": "long"},
-                        {"name": "replacement", "type": "string"}]}]},
-                    {"name": "time",
-                     "type": [
-                       {"name": "time",
-                       "type": "record",
-                       "namespace": "thing_created_event.properties.parsers.settings.timestamp",
-                       "fields": [
-                         {"name": "pattern", "type": "string"},
-                         {"name": "position", "type": "long"},
-                         {"name": "replacement", "type": "string"}]}]}]},
-                  "null"]}]},
-              "null"]}]}]}]}]}]}]}
+    },
+    {
+      "name": "mqtt_authentication_credentials",
+      "type": [
+        {
+          "name": "mqtt_authentication_credentials",
+          "type": "record",
+          "namespace": "thing_created_event",
+          "fields": [
+            {
+              "name": "username",
+              "type": "string"
+            },
+            {
+              "name": "password",
+              "type": "string"
+            },
+            {
+              "name": "description",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "properties",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            }
+          ]
+        },
+        "null"
+      ],
+      "default": null
+    },
+    {
+      "name": "properties",
+      "type": [
+        {
+          "name": "properties",
+          "type": "record",
+          "namespace": "thing_created_event",
+          "fields": [
+            {
+              "name": "default_parser",
+              "type": "string"
+            },
+            {
+              "name": "parsers",
+              "type": [
+                {
+                  "type": "array",
+                  "items": [
+                    {
+                      "name": "parsers",
+                      "type": "record",
+                      "namespace": "thing_created_event.properties",
+                      "fields": [
+                        {
+                          "name": "type",
+                          "type": "string"
+                        },
+                        {
+                          "name": "settings",
+                          "type": [
+                            {
+                              "name": "settings",
+                              "type": "record",
+                              "namespace": "thing_created_event.properties.parsers",
+                              "fields": [
+                                {
+                                  "name": "delimiter",
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                {
+                                  "name": "footlines",
+                                  "type": [
+                                    "long",
+                                    "null"
+                                  ]
+                                },
+                                {
+                                  "name": "header",
+                                  "type": [
+                                    "long",
+                                    "null"
+                                  ]
+                                },
+                                {
+                                  "name": "headlines",
+                                  "type": [
+                                    "long",
+                                    "null"
+                                  ]
+                                },
+                                {
+                                  "name": "skipfooter",
+                                  "type": [
+                                    "long",
+                                    "null"
+                                  ]
+                                },
+                                {
+                                  "name": "timestamp_format",
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                {
+                                  "name": "timestamp_column",
+                                  "type": [
+                                    "long",
+                                    "null"
+                                  ]
+                                },
+                                {
+                                  "name": "timestamp",
+                                  "type": [
+                                    {
+                                      "name": "timestamp",
+                                      "type": "record",
+                                      "namespace": "thing_created_event.properties.parsers.settings",
+                                      "fields": [
+                                        {
+                                          "name": "date",
+                                          "type": [
+                                            {
+                                              "name": "date",
+                                              "type": "record",
+                                              "namespace": "thing_created_event.properties.parsers.settings.timestamp",
+                                              "fields": [
+                                                {
+                                                  "name": "pattern",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "name": "position",
+                                                  "type": "long"
+                                                },
+                                                {
+                                                  "name": "replacement",
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "name": "time",
+                                          "type": [
+                                            {
+                                              "name": "time",
+                                              "type": "record",
+                                              "namespace": "thing_created_event.properties.parsers.settings.timestamp",
+                                              "fields": [
+                                                {
+                                                  "name": "pattern",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "name": "position",
+                                                  "type": "long"
+                                                },
+                                                {
+                                                  "name": "replacement",
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    "null"
+                                  ]
+                                }
+                              ]
+                            },
+                            "null"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
