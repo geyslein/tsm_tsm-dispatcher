@@ -11,6 +11,7 @@ from ProcessNewFileAction import ProcessNewFileAction
 from CreateThingInDatabaseAction import CreateThingInDatabaseAction
 from MqttDatastreamAction import MqttDatastreamAction
 from MqttLoggingAction import MqttLoggingAction
+from QcqaAction import QcqaAction
 
 __version__ = '0.0.1'
 
@@ -50,11 +51,7 @@ __version__ = '0.0.1'
               )
 @click.pass_context
 def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
-    if verbose:
-        level = logging.DEBUG
-    else:
-        level = logging.INFO
-    logging.basicConfig(level=level)
+    logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO)
 
 
 @cli.command()
@@ -162,6 +159,21 @@ def parse_data(ctx, target_uri: str):
     mqtt_password = ctx.parent.params["mqtt_password"]
 
     action = MqttDatastreamAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
+
+    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
+    action.run_loop()
+
+
+@cli.command()
+@click.option("-t", "--target-uri", type=str, help="datastore uri")
+@click.pass_context
+def run_QCQA(ctx, target_uri: str):
+    topic = ctx.parent.params['topic']
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"]
+    mqtt_password = ctx.parent.params["mqtt_password"]
+
+    action = QcqaAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
 
     logging.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
