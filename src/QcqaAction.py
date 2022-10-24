@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import datetime
+import warnings
 
 from AbstractAction import AbstractAction
 from tsm_datastore_lib import SqlAlchemyDatastore
@@ -17,6 +18,7 @@ from typing import Dict, Callable, List
 
 import pandas as pd
 import saqc
+from saqc.core.core import DictOfSeries
 
 TOPIC_DELIMITER = "/"
 
@@ -32,20 +34,37 @@ class QcqaAction(AbstractAction):
         self.target_uri = target_uri
         self.datastores: OrderedDict[SqlAlchemyDatastore] = OrderedDict()
 
-    def parse_qcqa_config(self, thing):
+    def _parse_qcqa_config(self, datastore):
+        thing = datastore.sqla_thing
         idx = thing.properties["QCQA"]["default"]
         config = thing.properties["QCQA"]["configs"][idx]
         if config["type"] != "SaQC":
             raise NotImplementedError(
                 "only configs of type SaQC are supported currently"
             )
-        logging.debug(f"{config=}")
-        return config
+        logging.debug(f"raw-config: {config=}")
 
-    def get_unique_positions(self, config):
-        return set(int(row["position"]) for row in config["tests"])
+        # config_df:
+        #
+        config_df = pd.DataFrame(config["tests"])
+        config_df["window"] = self._parse_window(config["context_window"])
 
-    def get_datastream(self, datastore, position) -> Datastream:
+        return config_df
+
+    def _parse_window(self, window) -> pd.Timedelta | int:
+        # todo: add (4x) test for any combination of (+/-window, offset/numeric)
+        if isinstance(window, int) or isinstance(window, str) and window.isnumeric():
+            window = int(window)
+            is_negative = window < 0
+        else:
+            window = pd.Timedelta(window)
+            is_negative = window.days < 0
+        if is_negative:
+            raise ValueError("window can't be negative")
+        return window
+
+    def _get_datastream(self, datastore, position) -> Datastream:
+        # todo: integrate this into datastore_lib
         thing: Thing = datastore.sqla_thing
         name = f"{thing.name}/{position}"
 
@@ -59,25 +78,16 @@ class QcqaAction(AbstractAction):
                 .filter(Datastream.name == name)
                 .first()
             )
+            # update cache
+            if stream is not None:
+                datastore.sqla_datastream_cache[name] = stream
         return stream
 
-    def parse_window(self, window) -> datetime.timedelta | int:
-        # todo: 4 test for (+/-window X offset/numeric)
-        if isinstance(window, int) or isinstance(window, str) and window.isnumeric():
-            window = int(window)
-            is_negative = window < 0
-        else:
-            window = pd.Timedelta(window).to_pydatetime()
-            is_negative = window.days < 0
-        if is_negative:
-            raise ValueError("window can't be negative")
-        return window
-
-    def get_data(
+    def _get_datastream_data(
         self,
         datastore: SqlAlchemyDatastore,
         datastream: Datastream,
-        window: int | datetime.timedelta,
+        window: int | pd.Timedelta,
     ) -> pd.DataFrame | None:
 
         query = datastore.session.query(Observation.result_time).filter(
@@ -143,7 +153,7 @@ class QcqaAction(AbstractAction):
         # window before the first observation. The window is
         # defined by a datetime-offset e.g. `'7d'`
         else:
-            window: datetime.timedelta
+            window: pd.Timedelta
             query = base_query.filter(
                 Observation.result_time < less_recent,
                 Observation.result_time >= less_recent - window,
@@ -156,38 +166,60 @@ class QcqaAction(AbstractAction):
             )
 
         if window_data.empty:
-            data = window_data
+            data = main_data
         else:
             data = pd.concat([main_data, window_data], sort=True)
 
         return data
 
-    def run_config(self, datastore: SqlAlchemyDatastore, config):
-        window = self.parse_window(config["context_window"])
-        for test in config["tests"]:
-            pos = test["position"]
-            function = test["function"]
-            kwargs = test["kwargs"]
-            stream = self.get_datastream(datastore, pos)
-            df = self.get_data(datastore, stream, window)
-            if df is None:
-                continue
-            ctx = dict(stream=stream)
-            self.run_saqc_funtion(None, function, kwargs, ctx)
+    def _get_data(self, datastore: SqlAlchemyDatastore, config: pd.DataFrame):
 
-    def run_saqc_funtion(self, qc_obj, func, kwargs, ctx):
-        qc = saqc.SaQC()
-        method = getattr(qc, func, None)
-        if method is None:
-            raise RuntimeError(f"Function {func} not found. {ctx=}")
-        ctx['func_name'] = method.__name__
-        logging.debug(f"{ctx=}")
+        if config.empty:
+            return
+
+        unique_pos = config['position'].unique()
+        data = DictOfSeries(columns=list(map(str, unique_pos)))
+
+        # hint: window is the same for whole config
+        window = config.loc[0, 'window']
+
+        for position in unique_pos:
+            datastream = self._get_datastream(datastore, position)
+            config.loc[config['position'] == position, 'datastream'] = datastream
+            if datastream is None:
+                warnings.warn(f"no datastream for {position=}")
+                continue
+            raw = self._get_datastream_data(datastore, datastream, window)
+
+            # todo: evaluate 'result_type'
+            data[str(position)] = raw['result_number']
+
+        return saqc.SaQC(data)
+
+    def _run_qcqa(self, data: saqc.SaQC, config: pd.DataFrame):
+
+        for idx, row in config.iterrows():
+            # var is position for now, until SMS is inplace
+            var = str(row['position'])
+            func = row['function']
+            kwargs = row['kwargs']
+            info = config.loc[idx].to_dict()
+            data = self._run_saqc_funtion(data, var, func, kwargs, info)
+
+        return data
+
+    def _run_saqc_funtion(self, qc_obj, var_name, func_name, kwargs, info):
+        method = getattr(qc_obj, func_name, None)
+        logging.debug(f"running SaQC with {info=}")
+        qc_obj = method(var_name, **kwargs)
+        return qc_obj
 
     def act(self, message: dict):
         topic = message.get("topic")
         datastore = self.__get_datastore_by_topic(topic)
-        config = self.parse_qcqa_config(datastore.sqla_thing)
-        self.run_config(datastore, config)
+        config = self._parse_qcqa_config(datastore)
+        data = self._get_data(datastore, config)
+        result = self._run_qcqa(data, config)
 
     @lru_cache(maxsize=DATASTORE_CACHE_SIZE)
     def __get_datastore_by_topic(self, topic):
