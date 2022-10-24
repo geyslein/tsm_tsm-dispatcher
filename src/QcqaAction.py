@@ -22,6 +22,8 @@ from saqc.core.core import DictOfSeries
 
 TOPIC_DELIMITER = "/"
 
+# todo: add (4x) test for any combination of (+/-window, offset/numeric)
+
 
 class QcqaAction(AbstractAction):
     # The maximum number of datastore instances (database connections) to be held
@@ -38,21 +40,25 @@ class QcqaAction(AbstractAction):
         thing = datastore.sqla_thing
         idx = thing.properties["QCQA"]["default"]
         config = thing.properties["QCQA"]["configs"][idx]
+
         if config["type"] != "SaQC":
             raise NotImplementedError(
                 "only configs of type SaQC are supported currently"
             )
-        logging.debug(f"raw-config: {config=}")
+        else:
+            logging.debug(f"raw-config: {config}")
 
-        # config_df:
-        #
         config_df = pd.DataFrame(config["tests"])
         config_df["window"] = self._parse_window(config["context_window"])
 
+        # example `config_df`
+        #                                     kwargs   function  position          window
+        # 0                   {'max': 100, 'min': 0}  flagRange         0 0 days 01:00:00
+        # 1                    {'max': 98, 'min': 2}  flagRange         2 0 days 01:00:00
+        # 2  {'window': '60Min', 'min_residuals': 5}    flagMAD         0 0 days 01:00:00
         return config_df
 
     def _parse_window(self, window) -> pd.Timedelta | int:
-        # todo: add (4x) test for any combination of (+/-window, offset/numeric)
         if isinstance(window, int) or isinstance(window, str) and window.isnumeric():
             window = int(window)
             is_negative = window < 0
@@ -177,22 +183,34 @@ class QcqaAction(AbstractAction):
         if config.empty:
             return
 
-        unique_pos = config['position'].unique()
+        unique_pos = config["position"].unique()
         data = DictOfSeries(columns=list(map(str, unique_pos)))
 
         # hint: window is the same for whole config
-        window = config.loc[0, 'window']
+        window = config.loc[0, "window"]
 
-        for position in unique_pos:
-            datastream = self._get_datastream(datastore, position)
-            config.loc[config['position'] == position, 'datastream'] = datastream
+        dummy = pd.Series([], dtype=float, index=pd.DatetimeIndex([]))
+
+        for pos in unique_pos:
+            var_name = str(pos)
+
+            datastream = self._get_datastream(datastore, pos)
             if datastream is None:
-                warnings.warn(f"no datastream for {position=}")
+                logging.warning(f"no datastream for {pos=}")
+                data[var_name] = dummy
                 continue
+
+            # keep track of the source datastream for debugging etc.
+            config.loc[config["position"] == pos, "datastream_name"] = datastream.name
+
             raw = self._get_datastream_data(datastore, datastream, window)
+            if raw is None:
+                logging.warning(f"no data for {datastream.name=}")
+                data[var_name] = dummy
+                continue
 
             # todo: evaluate 'result_type'
-            data[str(position)] = raw['result_number']
+            data[var_name] = raw["result_number"]
 
         return saqc.SaQC(data)
 
@@ -200,9 +218,9 @@ class QcqaAction(AbstractAction):
 
         for idx, row in config.iterrows():
             # var is position for now, until SMS is inplace
-            var = str(row['position'])
-            func = row['function']
-            kwargs = row['kwargs']
+            var = str(row["position"])
+            func = row["function"]
+            kwargs = row["kwargs"]
             info = config.loc[idx].to_dict()
             data = self._run_saqc_funtion(data, var, func, kwargs, info)
 
