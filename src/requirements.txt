@@ -7,5 +7,3 @@ paho-mqtt==1.6.1
 minio-cli-wrapper>=0.0.14
 --extra-index-url https://git.ufz.de/api/v4/projects/2886/packages/pypi/simple
 tsm-datastore-lib>=0.3.1
-saqc==2.1.0
-pandas==1.4.4
