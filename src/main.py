@@ -11,7 +11,7 @@ from ProcessNewFileAction import ProcessNewFileAction
 from CreateThingInDatabaseAction import CreateThingInDatabaseAction
 from MqttDatastreamAction import MqttDatastreamAction
 from MqttLoggingAction import MqttLoggingAction
-from QcqaAction import QcqaAction
+from QaqcAction import QaqcAction
 
 __version__ = '0.0.1'
 
@@ -165,15 +165,22 @@ def parse_data(ctx, target_uri: str):
 
 
 @cli.command()
-@click.option("-t", "--target-uri", type=str, help="datastore uri")
+@click.argument('scheduler_endpoint_url', type=str, envvar='SCHEDULER_ENDPOINT_URL')
 @click.pass_context
-def run_QCQA(ctx, target_uri: str):
+def run_QAQC(ctx, scheduler_endpoint_url: str):
     topic = ctx.parent.params['topic']
     mqtt_broker = ctx.parent.params["mqtt_broker"]
     mqtt_user = ctx.parent.params["mqtt_user"]
     mqtt_password = ctx.parent.params["mqtt_password"]
 
-    action = QcqaAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
+    logging.info(f'MQTT broker to connect: {mqtt_broker}')
+
+    action = QaqcAction(
+        topic, mqtt_broker, mqtt_user, mqtt_password,
+        scheduler_settings={
+            "url": scheduler_endpoint_url
+        }
+    )
 
     logging.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
