@@ -20,7 +20,7 @@ class QaqcAction(AbstractAction):
 
         # skip all messages that are not a put event
         thing_uuid = message['thing_uuid']
-        target = message['target_uri']
+        target = message['db_uri']
 
         data = {
             "thing_uuid": thing_uuid,
