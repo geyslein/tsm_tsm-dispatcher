@@ -18,15 +18,6 @@ class MqttUserAction(AbstractAction):
     def act(self, message: dict):
         thing = Thing.get_instance(message)
 
-        # 1. Check, if there is already a database user for this project
-        if not self.user_exists(thing):
-            # 2.1 Create one if not
-            self.create_user(thing)
-            # 2.2 Create schema
-            self.create_schema(thing)
-            # 2.3 Deploy schema on new database
-            self.deploy_ddl(thing)
-
     def create_user(self, thing):
         get_id = 'SELECT MAX(id) FROM mqtt_auth.mqtt_user;'
         sql = 'INSERT INTO mqtt_user (id,thing_uuid,username,password,description,properties) VALUES (%s, %s, %s, ' \
