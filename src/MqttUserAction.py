@@ -40,7 +40,7 @@ class MqttUserAction(AbstractAction):
                 max_id = c.execute(get_id)
                 c.execute(
                     sql,
-                    (id+1, thing.uuid, thing.mqtt_user, thing.password, thing.description, json.dumps(thing.properties))
+                    (max_id+1, thing.uuid, thing.mqtt_user, thing.password, thing.description, json.dumps(thing.properties))
                 )
 
 
