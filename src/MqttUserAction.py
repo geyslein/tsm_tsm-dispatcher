@@ -30,7 +30,7 @@ class MqttUserAction(AbstractAction):
     def create_user(self, thing):
         get_id = 'SELECT MAX(id) FROM mqtt_auth.mqtt_user;'
         sql = 'INSERT INTO mqtt_user (id,thing_uuid,username,password,description,properties) VALUES (%s, %s, %s, ' \
-              '%s) ON CONFLICT (thing_uuid) DO UPDATE SET name = EXCLUDED.username,' \
+              '%s ,%s ,%s )  ON CONFLICT (thing_uuid) DO UPDATE SET name = EXCLUDED.username,' \
               ' password=EXCLUDED.password' \
               ' description = EXCLUDED.description,' \
               ' properties = EXCLUDED.properties'
