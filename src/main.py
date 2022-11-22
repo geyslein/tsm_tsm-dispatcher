@@ -182,5 +182,26 @@ def persist_log_messages_in_database_service(ctx, target_uri: str):
     action.run_loop()
 
 
+@cli.command()
+@click.argument('database_url', type=str, envvar='DATABASE_URL')
+# @click.argument('database_user', type=str, envvar='DATABASE_USER')
+# @click.argument('database_pass', type=str, envvar='DATABASE_PASS')
+@click.pass_context
+def run_create_mqtt_user_action_service(ctx, database_url):
+    topic = ctx.parent.params['topic']  # thing_created
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"]
+    mqtt_password = ctx.parent.params["mqtt_password"]
+
+    action = MqttUserAction(topic, mqtt_broker, mqtt_user, mqtt_password, database_settings={
+        'url': database_url,
+        # 'user': database_user,
+        # 'pass': database_pass
+    })
+
+    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
+    action.run_loop()
+
+
 if __name__ == '__main__':
     cli(obj={})
