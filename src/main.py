@@ -11,6 +11,8 @@ from ProcessNewFileAction import ProcessNewFileAction
 from CreateThingInDatabaseAction import CreateThingInDatabaseAction
 from MqttDatastreamAction import MqttDatastreamAction
 from MqttLoggingAction import MqttLoggingAction
+from MqttUserAction import MqttUserAction
+
 
 __version__ = '0.0.1'
 
