@@ -18,17 +18,17 @@ class MqttUserAction(AbstractAction):
     def act(self, message: dict):
         thing = Thing.get_instance(message)
         if message['mqtt_authentication_credentials']:
-            user = message['mqtt_authentication_credentials'][0]
-            pw = message['mqtt_authentication_credentials'][1]
+            user = message['mqtt_authentication_credentials']["username"]
+            pw = message['mqtt_authentication_credentials']["password"]
             print(user)
             print(pw)
             self.create_user(thing, user, pw)
 
     def create_user(self, thing, user, pw):
         get_id = 'SELECT MAX(id) FROM mqtt_auth.mqtt_user;'
-        sql = 'INSERT INTO mqtt_user (id,thing_uuid,username,password,description,properties) VALUES (%s, %s, %s, ' \
-              '%s ,%s ,%s ) ON CONFLICT (thing_uuid) DO UPDATE SET name = EXCLUDED.username,' \
-              ' password=EXCLUDED.password' \
+        sql = 'INSERT INTO mqtt_auth.mqtt_user (thing_uuid,username,password,description,properties) VALUES ( %s, %s, ' \
+              '%s ,%s ,%s ) ON CONFLICT (thing_uuid) DO UPDATE SET username = EXCLUDED.username,' \
+              ' password=EXCLUDED.password,' \
               ' description = EXCLUDED.description,' \
               ' properties = EXCLUDED.properties'
         print("db stuff")
@@ -37,7 +37,7 @@ class MqttUserAction(AbstractAction):
                 max_id = c.execute(get_id)
                 c.execute(
                     sql,
-                    (max_id+1, thing.uuid, user, pw, thing.description,
+                    ( thing.uuid, user, pw, thing.description,
                      json.dumps(thing.properties))
                 )
 
