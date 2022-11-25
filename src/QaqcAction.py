@@ -17,16 +17,10 @@ class QaqcAction(AbstractAction):
         self.request.add_header('Content-Type', 'application/json')
 
     def act(self, message: dict):
-
-        # skip all messages that are not a put event
-        thing_uuid = message['thing_uuid']
-        target = message['db_uri']
-
         data = {
-            "thing_uuid": thing_uuid,
-            "target": target,
+            "thing_uuid": message["thing_uuid"],
+            "target": message["db_uri"],
         }
-
         try:
             data = json.dumps(data)
             data = data.encode()
