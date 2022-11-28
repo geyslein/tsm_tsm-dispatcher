@@ -22,7 +22,6 @@ class MqttUserAction(AbstractAction):
             self.create_user(thing, user, pw)
 
     def create_user(self, thing, user, pw):
-        get_id = 'SELECT MAX(id) FROM mqtt_auth.mqtt_user;'
         sql = 'INSERT INTO mqtt_auth.mqtt_user (thing_uuid,username,password,description,properties) VALUES ( %s, %s, ' \
               '%s ,%s ,%s ) ON CONFLICT (thing_uuid) DO UPDATE SET username = EXCLUDED.username,' \
               ' password=EXCLUDED.password,' \
