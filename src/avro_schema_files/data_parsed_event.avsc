@@ -3,6 +3,6 @@
     "type": "record",
     "fields": [
         {"name": "thing_uuid", "type": "string"},
-        {"name": "db_uri", "type": "string"},
-    ],
+        {"name": "db_uri", "type": "string"}
+    ]
 }
