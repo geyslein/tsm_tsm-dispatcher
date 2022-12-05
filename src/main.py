@@ -11,6 +11,7 @@ from ProcessNewFileAction import ProcessNewFileAction
 from CreateThingInDatabaseAction import CreateThingInDatabaseAction
 from MqttDatastreamAction import MqttDatastreamAction
 from MqttLoggingAction import MqttLoggingAction
+from QaqcAction import QaqcAction
 from MqttUserAction import MqttUserAction
 
 
@@ -52,11 +53,7 @@ __version__ = '0.0.1'
               )
 @click.pass_context
 def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
-    if verbose:
-        level = logging.DEBUG
-    else:
-        level = logging.INFO
-    logging.basicConfig(level=level)
+    logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO)
 
 
 @cli.command()
@@ -164,6 +161,28 @@ def parse_data(ctx, target_uri: str):
     mqtt_password = ctx.parent.params["mqtt_password"]
 
     action = MqttDatastreamAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
+
+    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
+    action.run_loop()
+
+
+@cli.command()
+@click.argument('scheduler_endpoint_url', type=str, envvar='SCHEDULER_ENDPOINT_URL')
+@click.pass_context
+def run_QAQC(ctx, scheduler_endpoint_url: str):
+    topic = ctx.parent.params['topic']
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"]
+    mqtt_password = ctx.parent.params["mqtt_password"]
+
+    logging.info(f'MQTT broker to connect: {mqtt_broker}')
+
+    action = QaqcAction(
+        topic, mqtt_broker, mqtt_user, mqtt_password,
+        scheduler_settings={
+            "url": scheduler_endpoint_url
+        }
+    )
 
     logging.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
