@@ -96,7 +96,7 @@
               "type": "string"
             },
             {
-              "name": "password",
+              "name": "password_hash",
               "type": "string"
             },
             {

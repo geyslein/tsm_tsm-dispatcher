@@ -18,12 +18,18 @@ class MqttUserAction(AbstractAction):
         thing = Thing.get_instance(message)
         if message['mqtt_authentication_credentials']:
             user = message['mqtt_authentication_credentials']["username"]
-            pw = message['mqtt_authentication_credentials']["password"]
+            pw = message['mqtt_authentication_credentials']["password_hash"]
             self.create_user(thing, user, pw)
 
     def create_user(self, thing, user, pw):
-        sql = 'INSERT INTO mqtt_auth.mqtt_user (thing_uuid,username,password,description,properties) VALUES ( %s, %s, ' \
-              '%s ,%s ,%s ) ON CONFLICT (thing_uuid) DO UPDATE SET username = EXCLUDED.username,' \
+        sql = 'INSERT INTO mqtt_auth.mqtt_user (' \
+              'project_uuid, thing_uuid, username, password, description,' \
+              'properties' \
+              ') VALUES (' \
+              ' %s, %s, %s, %s ,%s ,%s' \
+              ') ON CONFLICT (thing_uuid) DO UPDATE SET' \
+              ' project_uuid = EXCLUDED.project_uuid,' \
+              ' username = EXCLUDED.username,' \
               ' password=EXCLUDED.password,' \
               ' description = EXCLUDED.description,' \
               ' properties = EXCLUDED.properties'
@@ -31,7 +37,7 @@ class MqttUserAction(AbstractAction):
             with self.db.cursor() as c:
                 c.execute(
                     sql,
-                    ( thing.uuid, user, pw, thing.description,
-                     json.dumps(thing.properties))
+                    ( thing.project.uuid, thing.uuid, user, pw,
+                      thing.description, json.dumps(thing.properties) )
                 )
 
