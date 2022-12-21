@@ -67,15 +67,21 @@ class Thing:
 
     @classmethod
     def get_instance(cls, message: dict) -> Thing:
+        # Raw data storage is optional, i.e. when using mqtt only
+        raw_data_storage = None
         try:
+
+            if message.get("raw_data_storage"):
+                raw_data_storage = RawDataStorage.get_instance(message["raw_data_storage"])
+
             return cls(
                 message["uuid"],
                 message["name"],
                 Project.get_instance(message["project"]),
                 Database.get_instance(message["database"]),
-                RawDataStorage.get_instance(message["raw_data_storage"]),
+                raw_data_storage,
                 message["description"],
                 message["properties"],
             )
-        except KeyError:
-            raise ValueError(f'Unable to get Thing instance from message "{message}"')
+        except KeyError as e:
+            raise ValueError(f'Unable to get Thing instance from message "{message}"', e)

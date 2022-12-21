@@ -9,6 +9,8 @@ from typing import Dict, Callable, List
 from AbstractAction import AbstractAction
 
 import paho.mqtt.client as mqtt
+import psycopg2
+import psycopg2.extras
 
 from tsm_datastore_lib import get_datastore
 from tsm_datastore_lib.Observation import Observation
@@ -57,7 +59,7 @@ class MqttDatastreamAction(AbstractAction):
         super().__init__(root_topic, mqtt_broker, mqtt_user, mqtt_password)
 
         self.target_uri = target_uri
-        self.datastores: OrderedDict[SqlAlchemyDatastore] = OrderedDict()
+        self.auth_db = psycopg2.connect(target_uri)
 
     def act(self, message: dict):
         topic = message.get("topic")
@@ -76,9 +78,15 @@ class MqttDatastreamAction(AbstractAction):
         """
         :param topic: e.g. 'mqtt_ingest/seefo_envimo_cr6_test_002/7ff34ed2-5e56-11ec-9b0a-54e1ad7c5c19'
         """
-        schema, device_id = topic.split(TOPIC_DELIMITER)[1:3]
-        datastore = SqlAlchemyDatastore(self.target_uri, device_id, schema)
-        self.datastores[topic] = datastore
+        mqtt_user = topic.split(TOPIC_DELIMITER)[1:2][0]
+        sql = "select * from mqtt_auth.mqtt_user u where u.username = %(username)s"
+        with self.auth_db:
+            with self.auth_db.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as c:
+                c.execute(sql, {"username": mqtt_user})
+                mqtt_auth = c.fetchone()
+
+        datastore = SqlAlchemyDatastore(self.target_uri, mqtt_auth.get("thing_uuid"),
+                                        mqtt_auth.get("db_schema"))
         return datastore
 
     def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[[dict, str], List[Observation]]:
