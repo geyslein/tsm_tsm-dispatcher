@@ -78,15 +78,15 @@ class MqttDatastreamAction(AbstractAction):
         """
         :param topic: e.g. 'mqtt_ingest/seefo_envimo_cr6_test_002/7ff34ed2-5e56-11ec-9b0a-54e1ad7c5c19'
         """
-        mqtt_user = topic.split(TOPIC_DELIMITER)[1:2][0]
+        mqtt_user = topic.split(TOPIC_DELIMITER)[1]
         sql = "select * from mqtt_auth.mqtt_user u where u.username = %(username)s"
         with self.auth_db:
             with self.auth_db.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as c:
                 c.execute(sql, {"username": mqtt_user})
                 mqtt_auth = c.fetchone()
 
-        datastore = SqlAlchemyDatastore(self.target_uri, mqtt_auth.get("thing_uuid"),
-                                        mqtt_auth.get("db_schema"))
+        datastore = SqlAlchemyDatastore(self.target_uri, mqtt_auth["thing_uuid"],
+                                        mqtt_auth["db_schema"])
         return datastore
 
     def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[[dict, str], List[Observation]]:

@@ -71,7 +71,7 @@ class Thing:
         raw_data_storage = None
         try:
 
-            if message.get("raw_data_storage"):
+            if "raw_data_storage" in message:
                 raw_data_storage = RawDataStorage.get_instance(message["raw_data_storage"])
 
             return cls(
