@@ -24,20 +24,21 @@ class MqttUserAction(AbstractAction):
     def create_user(self, thing, user, pw):
         sql = 'INSERT INTO mqtt_auth.mqtt_user (' \
               'project_uuid, thing_uuid, username, password, description,' \
-              'properties' \
+              'properties, db_schema' \
               ') VALUES (' \
-              ' %s, %s, %s, %s ,%s ,%s' \
+              ' %s, %s, %s, %s ,%s ,%s, %s' \
               ') ON CONFLICT (thing_uuid) DO UPDATE SET' \
               ' project_uuid = EXCLUDED.project_uuid,' \
               ' username = EXCLUDED.username,' \
               ' password=EXCLUDED.password,' \
               ' description = EXCLUDED.description,' \
-              ' properties = EXCLUDED.properties'
+              ' properties = EXCLUDED.properties,' \
+              ' db_schema = EXCLUDED.db_schema'
         with self.db:
             with self.db.cursor() as c:
                 c.execute(
                     sql,
                     ( thing.project.uuid, thing.uuid, user, pw,
-                      thing.description, json.dumps(thing.properties) )
+                      thing.description, json.dumps(thing.properties), thing.database.username )
                 )
 

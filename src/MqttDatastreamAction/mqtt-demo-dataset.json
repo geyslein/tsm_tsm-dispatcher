@@ -1,0 +1,24 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [
+      null,
+      null,
+      null
+    ]
+  },
+  "properties": {
+    "loggerID": "CR6_66666666",
+    "observationNames": [
+      "Batt_volt_Min",
+      "PTemp"
+    ],
+    "observations": {
+      "2022-12-21T11:00:00Z": [
+        11.8,
+        26.43
+      ]
+    }
+  }
+}
