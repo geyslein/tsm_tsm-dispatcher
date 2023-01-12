@@ -53,6 +53,7 @@ COPY --from=build /usr/local/bin/mc /usr/local/bin/mc
 # Tell docker that all future commands should run as the appuser user
 USER appuser
 
+ENV PGSSLROOTCERT=/etc/ssl/certs/ca-certificates.crt
 WORKDIR /home/appuser/app/src
 
 COPY src .
