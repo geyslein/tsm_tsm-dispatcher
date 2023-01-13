@@ -93,8 +93,11 @@ class MqttDatastreamAction(AbstractAction):
         parser = self.__get_parser(datastore)
         observations = parser(message, origin)
 
-        datastore.store_observations(observations)
-        datastore.insert_commit_chunk()
+        try:
+            datastore.store_observations(observations)
+            datastore.insert_commit_chunk()
+        except Exception as e:
+            datastore.session.rollback()
 
     @lru_cache(maxsize=DATASTORE_CACHE_SIZE)
     def __get_datastore_by_topic(self, topic):
