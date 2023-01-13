@@ -49,6 +49,29 @@ def campbell_cr6(payload: dict, origin: str) -> List[Observation]:
     return out
 
 
+def brightsky_dwd_api(payload: dict, origin: str) -> List[Observation]:
+    weather = payload['weather']
+    timestamp = weather.pop('timestamp')
+    source = payload['sources'][0]
+
+    out = []
+
+    for property, value in weather.items():
+        try:
+            obs = Observation(
+                timestamp=timestamp,
+                value=value,
+                position=property,
+                origin=origin,
+                header=source,
+            )
+        except Exception as e:
+            continue
+        out.append(obs)
+
+    return out
+
+
 class MqttDatastreamAction(AbstractAction):
 
     # The maximum number of datastore instances (database connections) to be held
@@ -94,3 +117,6 @@ class MqttDatastreamAction(AbstractAction):
 
         if parser == 'campbell_cr6':
             return campbell_cr6
+
+        if parser == 'brightsky_dwd_api':
+            return brightsky_dwd_api
