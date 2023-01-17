@@ -5,20 +5,34 @@ from fastavro._validate_common import ValidationError
 
 
 def on_message(client, userdata, message):
-    content = str(message.payload.decode("utf-8"))
-    parsed_content = json.loads(content)
-    if validate_avro_schema(parsed_content, userdata['schema_file']):
-        logging.info(
-            f"Received message on topic '{message.topic}' with QoS {message.qos}!")
-        try:
-            parsed_content["topic"] = message.topic
-            userdata['act'](parsed_content)
-        except Exception as e:
-            logging.warning(f"Error during message processing: {type(e)}:{e}!")
-            logging.warning("The following message could not be processed:")
-            logging.warning(parsed_content)
+    logging.info(f"Received message on topic '{message.topic}' with QoS {message.qos}")
+
+    callback = userdata["act"]
+    schema_file = userdata["schema_file"]
+    try:
+        payload = str(message.payload.decode("utf-8"))
+        content = json.loads(payload)
+    except json.JSONDecodeError as e:
+        logging.error(f"message parsing failed with: {type(e).__name__}: {e}")
+        return
+
+    if schema_file is None:
+        pass
+    elif validate_avro_schema(content, schema_file):
+        # must be an avro proofed messages, otherwise we
+        # might overwrite a user-set 'topic'
+        content["topic"] = message.topic
     else:
-        logging.warning("Schema of received message does not match with given avro schema!")
+        logging.error("avro schema validation failed: discarding message")
+        return
+
+    try:
+        callback(content)
+    except Exception as e:
+        logging.error(
+            f"message processing failed with: {type(e).__name__}:{e}\n"
+            f"original message: {payload}"
+        )
 
 
 def on_log(client, userdata, level, buf):
