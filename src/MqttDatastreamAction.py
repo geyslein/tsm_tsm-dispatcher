@@ -12,6 +12,7 @@ import paho.mqtt.client as mqtt
 import psycopg2
 import psycopg2.extras
 
+from datetime import datetime
 from tsm_datastore_lib import get_datastore
 from tsm_datastore_lib.Observation import Observation
 from tsm_datastore_lib.SqlAlchemyDatastore import SqlAlchemyDatastore
@@ -49,6 +50,36 @@ def campbell_cr6(payload: dict, origin: str) -> List[Observation]:
     return out
 
 
+def ydoc_ml417(payload: dict, origin: str) -> List[Observation]:
+    # mqtt_ingest/test-logger-pb/test/data/jsn
+    # {
+    # "device":
+    #   {"sn":99073020,"name":"UFZ","v":"4.2B5","imei":353081090730204,"sim":89490200001536167920},
+    # "channels":[
+    #   {"code":"SB","name":"Signal","unit":"bars"},
+    #   {"code":"MINVi","name":"Min voltage","unit":"V"},
+    #   {"code":"AVGVi","name":"Average voltage","unit":"V"},
+    #   {"code":"AVGCi","name":"Average current","unit":"mA"},
+    #   {"code":"P1*","name":"pr2_1_10","unit":"m3/m3"},
+    #   {"code":"P2","name":"pr2_1_20","unit":"m3/m3"},
+    #   {"code":"P3","name":"pr2_1_30","unit":"m3/m3"},
+    #   {"code":"P4","name":"pr2_1_40","unit":"m3/m3"},
+    #   {}],
+    # "data":[
+    #   {"$ts":230116110002,"$msg":"WDT;pr2_1"},
+    #   {"$ts":230116110002,"MINVi":3.74,"AVGVi":3.94,"AVGCi":116,"P1*":"0*T","P2":"0*T","P3":"0*T","P4":"0*T"},
+    #   {}]}
+    if 'data/jsn' not in origin:
+        return []
+
+    data = payload['data'][1]
+    ts = datetime.strptime(str(data["$ts"]), "%y%m%d%H%M%S")
+    ob0 = Observation(ts, data['MINVi'], origin, 0, header="MINVi")
+    ob1 = Observation(ts, data['AVGVi'], origin, 0, header="AVGCi")
+    ob2 = Observation(ts, data['AVGCi'], origin, 0, header="AVGCi")
+    return [ob0, ob1, ob2]
+
+
 def brightsky_dwd_api(payload: dict, origin: str) -> List[Observation]:
     weather = payload['weather']
     timestamp = weather.pop('timestamp')
@@ -73,7 +104,6 @@ def brightsky_dwd_api(payload: dict, origin: str) -> List[Observation]:
 
 
 class MqttDatastreamAction(AbstractAction):
-
     # The maximum number of datastore instances (database connections) to be held
     # @todo: Get it as optional command line parameter
     DATASTORE_CACHE_SIZE = 100
@@ -107,7 +137,8 @@ class MqttDatastreamAction(AbstractAction):
         mqtt_user = topic.split(TOPIC_DELIMITER)[1]
         sql = "select * from mqtt_auth.mqtt_user u where u.username = %(username)s"
         with self.auth_db:
-            with self.auth_db.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as c:
+            with self.auth_db.cursor(
+                    cursor_factory=psycopg2.extras.RealDictCursor) as c:
                 c.execute(sql, {"username": mqtt_user})
                 mqtt_auth = c.fetchone()
 
@@ -115,11 +146,13 @@ class MqttDatastreamAction(AbstractAction):
                                         mqtt_auth["db_schema"])
         return datastore
 
-    def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[[dict, str], List[Observation]]:
+    def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[
+        [dict, str], List[Observation]]:
         parser = datastore.sqla_thing.properties['default_parser']
 
         if parser == 'campbell_cr6':
             return campbell_cr6
-
         if parser == 'brightsky_dwd_api':
             return brightsky_dwd_api
+        if parser == 'ydoc_ml417':
+            return ydoc_ml417
