@@ -75,8 +75,8 @@ def ydoc_ml417(payload: dict, origin: str) -> List[Observation]:
     data = payload['data'][1]
     ts = datetime.strptime(str(data["$ts"]), "%y%m%d%H%M%S")
     ob0 = Observation(ts, data['MINVi'], origin, 0, header="MINVi")
-    ob1 = Observation(ts, data['AVGVi'], origin, 0, header="AVGCi")
-    ob2 = Observation(ts, data['AVGCi'], origin, 0, header="AVGCi")
+    ob1 = Observation(ts, data['AVGVi'], origin, 1, header="AVGCi")
+    ob2 = Observation(ts, data['AVGCi'], origin, 2, header="AVGCi")
     return [ob0, ob1, ob2]
 
 
