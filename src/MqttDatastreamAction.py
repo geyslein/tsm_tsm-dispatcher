@@ -72,16 +72,23 @@ def ydoc_ml417(payload: dict, origin: str) -> List[Observation]:
     if 'data/jsn' not in origin:
         return []
 
-    data = payload['data'][1]
-    ts = datetime.strptime(str(data["$ts"]), "%y%m%d%H%M%S")
-    ob0 = Observation(ts, data['MINVi'], origin, 0, header="MINVi")
-    ob1 = Observation(ts, data['AVGVi'], origin, 1, header="AVGCi")
-    ob2 = Observation(ts, data['AVGCi'], origin, 2, header="AVGCi")
-    ob3 = Observation(ts, data['P1*'], origin, 3, header="P1*")
-    ob4 = Observation(ts, data['P2'], origin, 4, header="P2")
-    ob5 = Observation(ts, data['P3'], origin, 5, header="P3")
-    ob6 = Observation(ts, data['P4'], origin, 6, header="P4")
-    return [ob0, ob1, ob2, ob3, ob4, ob5, ob6]
+    # data = payload['data'][1]
+    ret = []
+    for data in payload['data']:
+
+        try:
+            ts = datetime.strptime(str(data["$ts"]), "%y%m%d%H%M%S")
+            ob0 = Observation(ts, data['MINVi'], origin, 0, header="MINVi")
+            ob1 = Observation(ts, data['AVGVi'], origin, 1, header="AVGCi")
+            ob2 = Observation(ts, data['AVGCi'], origin, 2, header="AVGCi")
+            ob3 = Observation(ts, data['P1*'], origin, 3, header="P1*")
+            ob4 = Observation(ts, data['P2'], origin, 4, header="P2")
+            ob5 = Observation(ts, data['P3'], origin, 5, header="P3")
+            ob6 = Observation(ts, data['P4'], origin, 6, header="P4")
+            ret.extend([ob0, ob1, ob2, ob3, ob4, ob5, ob6])
+        except KeyError as e:
+            pass
+    return ret
 
 
 def brightsky_dwd_api(payload: dict, origin: str) -> List[Observation]:
