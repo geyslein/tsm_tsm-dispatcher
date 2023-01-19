@@ -77,11 +77,11 @@ def ydoc_ml417(payload: dict, origin: str) -> List[Observation]:
     ob0 = Observation(ts, data['MINVi'], origin, 0, header="MINVi")
     ob1 = Observation(ts, data['AVGVi'], origin, 1, header="AVGCi")
     ob2 = Observation(ts, data['AVGCi'], origin, 2, header="AVGCi")
-    ob3 = Observation(ts, data['P1*'], origin, 3, header="AVGCi")
-    ob4 = Observation(ts, data['P2'], origin, 4, header="AVGCi")
-    ob5 = Observation(ts, data['P3'], origin, 5, header="AVGCi")
-    ob6 = Observation(ts, data['P4'], origin, 6, header="AVGCi")
-    return [ob0, ob1, ob2]
+    ob3 = Observation(ts, data['P1*'], origin, 3, header="P1*")
+    ob4 = Observation(ts, data['P2'], origin, 4, header="P2")
+    ob5 = Observation(ts, data['P3'], origin, 5, header="P3")
+    ob6 = Observation(ts, data['P4'], origin, 6, header="P4")
+    return [ob0, ob1, ob2, ob3, ob4, ob5, ob6]
 
 
 def brightsky_dwd_api(payload: dict, origin: str) -> List[Observation]:
