@@ -77,6 +77,10 @@ def ydoc_ml417(payload: dict, origin: str) -> List[Observation]:
     ob0 = Observation(ts, data['MINVi'], origin, 0, header="MINVi")
     ob1 = Observation(ts, data['AVGVi'], origin, 1, header="AVGCi")
     ob2 = Observation(ts, data['AVGCi'], origin, 2, header="AVGCi")
+    ob3 = Observation(ts, data['P1*'], origin, 3, header="AVGCi")
+    ob4 = Observation(ts, data['P2'], origin, 4, header="AVGCi")
+    ob5 = Observation(ts, data['P3'], origin, 5, header="AVGCi")
+    ob6 = Observation(ts, data['P4'], origin, 6, header="AVGCi")
     return [ob0, ob1, ob2]
 
 
