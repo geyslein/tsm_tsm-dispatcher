@@ -114,6 +114,28 @@ def brightsky_dwd_api(payload: dict, origin: str) -> List[Observation]:
     return out
 
 
+def scripted_dummy(payload: dict, origin: str):
+
+    timestamp = datetime.now()
+
+    return [
+        Observation(
+            timestamp=timestamp,
+            value=payload["sine"],
+            position=0,
+            origin=origin,
+            header="sine"
+        ),
+        Observation(
+            timestamp=timestamp,
+            value=payload["cosine"],
+            position=1,
+            origin=origin,
+            header="cosine"
+        )
+    ]
+
+
 class MqttDatastreamAction(AbstractAction):
     # The maximum number of datastore instances (database connections) to be held
     # @todo: Get it as optional command line parameter
@@ -157,8 +179,7 @@ class MqttDatastreamAction(AbstractAction):
                                         mqtt_auth["db_schema"])
         return datastore
 
-    def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[
-        [dict, str], List[Observation]]:
+    def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[[dict, str], List[Observation]]:
         parser = datastore.sqla_thing.properties['default_parser']
 
         if parser == 'campbell_cr6':
@@ -167,3 +188,5 @@ class MqttDatastreamAction(AbstractAction):
             return brightsky_dwd_api
         if parser == 'ydoc_ml417':
             return ydoc_ml417
+        if parser == "sine_dummy":
+            return scripted_dummy
