@@ -2,7 +2,7 @@ version: 1
 formatters:
   tsm:
       style: '{'
-      format: '[{asctime}] {process} {name} {levelname:8} {message}'
+      format: '[{asctime}] {process} {levelname:8} File "{filename}", line {lineno}, in {funcName}   {message}'
 handlers:
   console:
     class: logging.StreamHandler
@@ -13,3 +13,4 @@ root:
   # level is overwritten at runtime
   level: NOTSET
   handlers: [console]
+disable_existing_loggers: false
