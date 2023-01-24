@@ -1,10 +1,15 @@
 import json
 import logging
+import logging.config
+import os
+import sys
 import uuid
+import warnings
 from json import loads, dumps
 
 import click
 import paho.mqtt.client as mqtt
+import yaml
 
 from CreateThingOnMinioAction import CreateThingOnMinioAction
 from ProcessNewFileAction import ProcessNewFileAction
@@ -53,7 +58,21 @@ __version__ = '0.0.1'
               )
 @click.pass_context
 def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
-    logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO)
+    setup_logging(verbose)
+    logging.debug(f"script started: {' '.join(sys.argv)!r}")
+
+
+def setup_logging(verbose):
+    level = logging.DEBUG if verbose else logging.INFO
+    config = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.yaml')
+    try:
+        with open(config) as f:
+            cdict = yaml.safe_load(f)
+        logging.config.dictConfig(cdict)
+    except OSError:
+        warnings.warn("No logging configuration ['logging.yaml'] found.")
+        logging.basicConfig()
+    logging.getLogger().setLevel(level)
 
 
 @cli.command()
