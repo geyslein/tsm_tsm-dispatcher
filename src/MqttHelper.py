@@ -4,9 +4,6 @@ import os.path
 
 import fastavro
 
-from AvroSchemaValidator import validate_avro_schema
-from fastavro._validate_common import ValidationError
-
 
 def on_message(client, userdata, message):
     logging.info(
@@ -34,8 +31,13 @@ def on_message(client, userdata, message):
         else:
             name = os.path.basename(schema_file)
             content = json.loads(decoded)
-            fastavro.validate(message, fastavro.schema.load_schema(schema_file))
-            logging.debug(f"Received message matches avro schema '{name}'")
+            schema = fastavro.schema.load_schema(schema_file)
+            if fastavro.validate(message, schema, raise_errors=False):
+                logging.debug(f"Received message matches avro schema '{name}'")
+            else:
+                raise ValueError(
+                    f"Received message does not match avro schema '{name}'"
+                )
 
         if isinstance(content, dict):
             content["topic"] = message.topic
