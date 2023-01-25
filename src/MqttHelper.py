@@ -10,7 +10,7 @@ def on_message(client, userdata, message):
         f"received message {message.mid} "
         f"on topic '{message.topic}' with QoS {message.qos}"
     )
-    logging.debug(f"{message=}")
+    logging.debug(f"{message.payload=}")
 
     callback = userdata["act"]
     schema_file = userdata["schema_file"]
@@ -32,7 +32,7 @@ def on_message(client, userdata, message):
             name = os.path.basename(schema_file)
             content = json.loads(decoded)
             schema = fastavro.schema.load_schema(schema_file)
-            if fastavro.validate(message, schema, raise_errors=False):
+            if fastavro.validate(content, schema, raise_errors=False):
                 logging.debug(f"Received message matches avro schema '{name}'")
             else:
                 raise ValueError(
