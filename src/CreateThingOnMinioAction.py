@@ -1,6 +1,6 @@
 from pwgen import pwgen
 
-from AbstractAction import AbstractAction
+from AbstractAction import AbstractAction, MQTTMessage
 from minio_cli_wrapper.mc import Mc, MinIoClientError
 
 from thing import Thing
@@ -21,9 +21,9 @@ class CreateThingOnMinioAction(AbstractAction):
             secret_key=minio_settings.get('minio_secure_key')
         )
 
-    def act(self, message: dict):
+    def act(self, content: dict, message: MQTTMessage):
 
-        thing = Thing.get_instance(message)
+        thing = Thing.get_instance(content)
 
         # create user
         # not implemented in minio python sdk yet :(
@@ -44,9 +44,7 @@ class CreateThingOnMinioAction(AbstractAction):
                         "s3:PutObject"
                     ],
                     "Resource": [
-                        "arn:aws:s3:::{bucket_name}".format(
-                            bucket_name=thing.raw_data_storage.bucket_name
-                        )
+                        f"arn:aws:s3:::{thing.raw_data_storage.bucket_name}"
                     ]
                 }
             ]

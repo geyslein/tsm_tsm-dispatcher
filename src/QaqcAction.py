@@ -2,6 +2,8 @@ import json
 import logging
 from urllib import request
 
+from paho.mqtt.client import MQTTMessage
+
 from AbstractAction import AbstractAction
 
 
@@ -16,10 +18,10 @@ class QaqcAction(AbstractAction):
         self.request = request.Request(scheduler_settings.get('url'), method="POST")
         self.request.add_header('Content-Type', 'application/json')
 
-    def act(self, message: dict):
+    def act(self, content: dict, message: MQTTMessage):
         data = {
-            "thing_uuid": message["thing_uuid"],
-            "target": message["db_uri"],
+            "thing_uuid": content["thing_uuid"],
+            "target": content["db_uri"],
         }
         try:
             data = json.dumps(data)

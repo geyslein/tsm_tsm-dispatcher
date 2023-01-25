@@ -4,16 +4,16 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from collections import OrderedDict
 from typing import Dict, Callable, List
+
+from paho.mqtt.client import MQTTMessage
+
 from AbstractAction import AbstractAction
 
-import paho.mqtt.client as mqtt
 import psycopg2
 import psycopg2.extras
 
 from datetime import datetime
-from tsm_datastore_lib import get_datastore
 from tsm_datastore_lib.Observation import Observation
 from tsm_datastore_lib.SqlAlchemyDatastore import SqlAlchemyDatastore
 
@@ -147,14 +147,14 @@ class MqttDatastreamAction(AbstractAction):
         self.target_uri = target_uri
         self.auth_db = psycopg2.connect(target_uri)
 
-    def act(self, message: dict):
-        topic = message.get("topic")
+    def act(self, content: dict, message: MQTTMessage):
+        topic = message.topic
         origin = f"{self.mqtt_broker}/{topic}"
 
         datastore = self.__get_datastore_by_topic(topic)
 
         parser = self.__get_parser(datastore)
-        observations = parser(message, origin)
+        observations = parser(content, origin)
 
         try:
             datastore.store_observations(observations)

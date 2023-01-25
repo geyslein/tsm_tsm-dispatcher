@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from collections import OrderedDict
-from AbstractAction import AbstractAction
+from AbstractAction import AbstractAction, MQTTMessage
 
 from tsm_datastore_lib.JournalEntry import JournalEntry
 from tsm_datastore_lib.SqlAlchemyDatastore import SqlAlchemyDatastore
@@ -25,18 +25,18 @@ class MqttLoggingAction(AbstractAction):
         self.target_uri = target_uri
         self.datastores: OrderedDict[SqlAlchemyDatastore] = OrderedDict()
 
-    def act(self, message: dict):
-        topic = message.get("topic")
-        log_entry = self.parse(message)
+    def act(self, content: dict, message: MQTTMessage):
+        topic = message.topic
+        log_entry = self.parse(content)
         datastore = self.__get_datastore_by_topic(topic)
         datastore.store_journal_entry(log_entry)
         datastore.insert_commit_chunk()
 
-    def parse(self, message):
+    def parse(self, content):
         return JournalEntry(
-            timestamp=message['timestamp'],
-            message=message['message'],
-            level=message['level'],
+            timestamp=content['timestamp'],
+            message=content['message'],
+            level=content['level'],
             extra={}
         )
 

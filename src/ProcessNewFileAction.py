@@ -6,7 +6,7 @@ from urllib import request
 from minio import Minio
 from minio.commonconfig import Tags
 
-from AbstractAction import AbstractAction
+from AbstractAction import AbstractAction, MQTTMessage
 
 
 class ProcessNewFileAction(AbstractAction):
@@ -28,14 +28,14 @@ class ProcessNewFileAction(AbstractAction):
         self.request = request.Request(scheduler_settings.get('url'), method="POST")
         self.request.add_header('Content-Type', 'application/json')
 
-    def act(self, message: dict):
+    def act(self, content: dict, message: MQTTMessage):
 
         # skip all messages that are not a put event
-        if message['EventName'] != 's3:ObjectCreated:Put':
+        if content['EventName'] != 's3:ObjectCreated:Put':
             return
 
-        filename = message['Records'][0]['s3']['object']['key']
-        bucket_name = message['Records'][0]['s3']['bucket']['name']
+        filename = content['Records'][0]['s3']['object']['key']
+        bucket_name = content['Records'][0]['s3']['bucket']['name']
         tags = self.minio.get_bucket_tags(bucket_name)
         thing_uuid = tags.get('thing_uuid')
         thing_database = {
