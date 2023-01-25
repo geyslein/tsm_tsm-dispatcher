@@ -63,24 +63,14 @@ class AbstractAction(ABC):
                 f"Errors occurred, discarding message {message.mid}", exc_info=e
             )
 
-    def _validate_message(self, payload):
-        assert self.SCHEMA_FILE is not None
-        name = os.path.basename(self.SCHEMA_FILE)
-        try:
-            schema = fastavro.schema.load_schema(self.SCHEMA_FILE)
-            fastavro.validate(payload, schema)
-        except fastavro.validation.ValidationError:
-            logging.warning(f"Received message does not match avro schema '{name}'")
-            raise
-        else:
-            logging.debug(f"Received message matches avro schema '{name}'")
-
     def _parse_message(self, message: MQTTMessage):
         decoded: str = message.payload.decode("utf-8")
 
         if self.SCHEMA_FILE is not None:
             content = json.loads(decoded)
-            self._validate_message(content)
+            fastavro.validate(content, fastavro.schema.load_schema(self.SCHEMA_FILE))
+            name = os.path.basename(self.SCHEMA_FILE)
+            logging.debug(f"Received message matches avro schema '{name}'")
             return content
 
         try:
