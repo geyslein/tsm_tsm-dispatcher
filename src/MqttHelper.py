@@ -31,13 +31,8 @@ def on_message(client, userdata, message):
         else:
             name = os.path.basename(schema_file)
             content = json.loads(decoded)
-            schema = fastavro.schema.load_schema(schema_file)
-            if fastavro.validate(content, schema, raise_errors=False):
-                logging.debug(f"Received message matches avro schema '{name}'")
-            else:
-                raise ValueError(
-                    f"Received message does not match avro schema '{name}'"
-                )
+            fastavro.validate(content, fastavro.schema.load_schema(schema_file))
+            logging.debug(f"Received message matches avro schema '{name}'")
 
         if isinstance(content, dict):
             content["topic"] = message.topic
