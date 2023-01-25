@@ -26,12 +26,12 @@ __version__ = "0.0.1"
 @click.group()
 @click.version_option(__version__)
 @click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Print more output.",
-    envvar="VERBOSE",
+    "--log-level",
+    "-ll",
+    help="Set the verbosity of logging messages.",
+    envvar="LOG_LEVEL",
     show_envvar=True,
+    default="INFO",
 )
 @click.option(
     "--topic",
@@ -70,13 +70,12 @@ __version__ = "0.0.1"
     envvar="MQTT_PASSWORD",
 )
 @click.pass_context
-def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
-    setup_logging(verbose)
+def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, log_level):
+    setup_logging(log_level)
     logging.debug(f"script started: {' '.join(sys.argv)!r}")
 
 
-def setup_logging(verbose):
-    level = logging.DEBUG if verbose else logging.INFO
+def setup_logging(log_level):
     config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logging.yaml")
     try:
         with open(config) as f:
@@ -85,7 +84,7 @@ def setup_logging(verbose):
     except OSError:
         warnings.warn("No logging configuration ['logging.yaml'] found.")
         logging.basicConfig()
-    logging.getLogger().setLevel(level)
+    logging.getLogger().setLevel(log_level)
 
 
 @cli.command()
