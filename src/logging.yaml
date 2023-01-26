@@ -2,7 +2,7 @@ version: 1
 formatters:
   tsm:
       style: '{'
-      format: '[{asctime}] {process} {levelname:8} File "{filename}", line {lineno}, in {funcName}   {message}'
+      format: '[{asctime}] {process} {levelname:8} {name}: {message}'
 handlers:
   console:
     class: logging.StreamHandler

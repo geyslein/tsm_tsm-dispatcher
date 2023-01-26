@@ -19,6 +19,7 @@ from MqttLoggingAction import MqttLoggingAction
 from QaqcAction import QaqcAction
 from MqttUserAction import MqttUserAction
 
+logger: logging.Logger = None
 
 __version__ = "0.0.1"
 
@@ -26,12 +27,12 @@ __version__ = "0.0.1"
 @click.group()
 @click.version_option(__version__)
 @click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Print more output.",
-    envvar="VERBOSE",
+    "--log-level",
+    "-ll",
+    help="Set the verbosity of logging messages.",
+    envvar="LOG_LEVEL",
     show_envvar=True,
+    default="INFO",
 )
 @click.option(
     "--topic",
@@ -70,13 +71,14 @@ __version__ = "0.0.1"
     envvar="MQTT_PASSWORD",
 )
 @click.pass_context
-def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, verbose):
-    setup_logging(verbose)
-    logging.debug(f"script started: {' '.join(sys.argv)!r}")
+def cli(ctx, topic, mqtt_broker, mqtt_user, mqtt_password, log_level):
+    global logger
+    setup_logging(log_level)
+    logger = logging.getLogger("dispatcher-main")
+    logger.debug(f"script started: {' '.join(sys.argv)!r}")
 
 
-def setup_logging(verbose):
-    level = logging.DEBUG if verbose else logging.INFO
+def setup_logging(log_level):
     config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logging.yaml")
     try:
         with open(config) as f:
@@ -85,7 +87,7 @@ def setup_logging(verbose):
     except OSError:
         warnings.warn("No logging configuration ['logging.yaml'] found.")
         logging.basicConfig()
-    logging.getLogger().setLevel(level)
+    logging.getLogger().setLevel(log_level)
 
 
 @cli.command()
@@ -109,7 +111,7 @@ def run_create_thing_on_minio_action_service(
     mqtt_user = ctx.parent.params["mqtt_user"]
     mqtt_password = ctx.parent.params["mqtt_password"]
 
-    logging.info(f"MQTT broker to connect: {mqtt_broker}")
+    logger.info(f"MQTT broker to connect: {mqtt_broker}")
 
     action = CreateThingOnMinioAction(
         topic,
@@ -124,7 +126,7 @@ def run_create_thing_on_minio_action_service(
         },
     )
 
-    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
+    logger.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
@@ -151,7 +153,7 @@ def run_create_database_schema_action_service(ctx, database_url):
         },
     )
 
-    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
+    logger.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
@@ -182,7 +184,7 @@ def run_process_new_file_service(
     mqtt_user = ctx.parent.params["mqtt_user"]
     mqtt_password = ctx.parent.params["mqtt_password"]
 
-    logging.info(f"MQTT broker to connect: {mqtt_broker}")
+    logger.info(f"MQTT broker to connect: {mqtt_broker}")
 
     action = ProcessNewFileAction(
         topic,
@@ -198,7 +200,7 @@ def run_process_new_file_service(
         scheduler_settings={"url": scheduler_endpoint_url},
     )
 
-    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
+    logger.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
@@ -215,7 +217,7 @@ def parse_data(ctx, target_uri: str):
         topic, mqtt_broker, mqtt_user, mqtt_password, target_uri
     )
 
-    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
+    logger.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
@@ -228,7 +230,7 @@ def run_QAQC(ctx, scheduler_endpoint_url: str):
     mqtt_user = ctx.parent.params["mqtt_user"]
     mqtt_password = ctx.parent.params["mqtt_password"]
 
-    logging.info(f"MQTT broker to connect: {mqtt_broker}")
+    logger.info(f"MQTT broker to connect: {mqtt_broker}")
 
     action = QaqcAction(
         topic,
@@ -238,7 +240,7 @@ def run_QAQC(ctx, scheduler_endpoint_url: str):
         scheduler_settings={"url": scheduler_endpoint_url},
     )
 
-    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
+    logger.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
@@ -253,7 +255,7 @@ def persist_log_messages_in_database_service(ctx, target_uri: str):
 
     action = MqttLoggingAction(topic, mqtt_broker, mqtt_user, mqtt_password, target_uri)
 
-    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
+    logger.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
@@ -280,7 +282,7 @@ def run_create_mqtt_user_action_service(ctx, database_url):
         },
     )
 
-    logging.info(f"Setup ok, starting service '{ctx.command.name}'")
+    logger.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
