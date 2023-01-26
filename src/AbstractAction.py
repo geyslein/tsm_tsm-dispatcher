@@ -15,6 +15,7 @@ class AbstractAction(ABC):
     SCHEMA_FILE = None  # default, may be overwritten in subclasses
 
     def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.topic = topic
         self.mqtt_broker = mqtt_broker
         self.mqtt_user = mqtt_user
@@ -40,25 +41,25 @@ class AbstractAction(ABC):
         self.mqtt_client.loop_forever()
 
     def on_log(self, client, userdata, level, buf):
-        logging.debug(f"{buf}")
+        self.logger.debug(f"{buf}")
 
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
-            logging.info(f"Connected to {self.mqtt_broker}")
+            self.logger.info(f"Connected to {self.mqtt_broker}")
         else:
-            logging.error(f"Failed to connect, return code {rc}\n")
+            self.logger.error(f"Failed to connect, return code {rc}")
 
     def on_message(self, client, userdata, message: MQTTMessage):
-        logging.info(
-            f"{self.__class__.__name__} received message {message.mid} "
-            f"on topic '{message.topic}' with QoS {message.qos}"
+        self.logger.info(
+            f"received message {message.mid} on topic "
+            f"{message.topic!r} with QoS {message.qos}"
         )
-        logging.debug(f"{message=}")
+        self.logger.debug(f"{message=}")
         try:
             content = self._parse_message(message)
             self.act(content, message)
         except Exception as e:
-            logging.error(
+            self.logger.error(
                 f"Errors occurred, discarding message {message.mid}", exc_info=e
             )
 
@@ -68,8 +69,7 @@ class AbstractAction(ABC):
         if self.SCHEMA_FILE is not None:
             content = json.loads(decoded)
             fastavro.validate(content, fastavro.schema.load_schema(self.SCHEMA_FILE))
-            name = os.path.basename(self.SCHEMA_FILE)
-            logging.debug(f"Received message matches avro schema '{name}'")
+            self.logger.debug(f"Received message {message.mid} matches avro schema")
             return content
 
         try:
