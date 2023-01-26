@@ -1,0 +1,15 @@
+version: 1
+formatters:
+  tsm:
+      style: '{'
+      format: '[{asctime}] {process} {levelname:8} File "{filename}", line {lineno}, in {funcName}   {message}'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: tsm
+    stream: ext://sys.stderr
+root:
+  # level is overwritten at runtime
+  level: NOTSET
+  handlers: [console]

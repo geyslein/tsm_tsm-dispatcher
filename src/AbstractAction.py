@@ -1,7 +1,13 @@
+from __future__ import annotations
+import json
 import logging
+import os.path
+import typing
+
+import fastavro
 import paho.mqtt.client as mqtt
+from paho.mqtt.client import MQTTMessage
 from abc import ABC, abstractmethod
-from MqttHelper import on_message, on_log, on_connect
 
 
 class AbstractAction(ABC):
@@ -19,23 +25,61 @@ class AbstractAction(ABC):
         self.mqtt_client = mqtt.Client()
 
     def connect_mqtt(self):
-        self.mqtt_client.user_data_set({"schema_file": self.SCHEMA_FILE,
-                                        "act": self.act,
-                                        "mqtt_broker": self.mqtt_broker})
         self.mqtt_client.username_pw_set(self.mqtt_user, self.mqtt_password)
-        self.mqtt_client.on_connect = on_connect
-        self.mqtt_client.on_log = on_log
+        self.mqtt_client.on_connect = self.on_connect
+        self.mqtt_client.on_log = self.on_log
         self.mqtt_client.connect(self.mqtt_host, self.mqtt_port)
 
     def subscribe_to_mqtt_topic(self):
         self.connect_mqtt()
         self.mqtt_client.subscribe(self.topic)
-        self.mqtt_client.on_message = on_message
+        self.mqtt_client.on_message = self.on_message
 
-    def run_loop(self):
+    def run_loop(self) -> typing.NoReturn:
         self.subscribe_to_mqtt_topic()
         self.mqtt_client.loop_forever()
 
+    def on_log(self, client, userdata, level, buf):
+        logging.debug(f"{buf}")
+
+    def on_connect(self, client, userdata, flags, rc):
+        if rc == 0:
+            logging.info(f"Connected to {self.mqtt_broker}")
+        else:
+            logging.error(f"Failed to connect, return code {rc}\n")
+
+    def on_message(self, client, userdata, message: MQTTMessage):
+        logging.info(
+            f"{self.__class__.__name__} received message {message.mid} "
+            f"on topic '{message.topic}' with QoS {message.qos}"
+        )
+        logging.debug(f"{message=}")
+        try:
+            content = self._parse_message(message)
+            self.act(content, message)
+        except Exception as e:
+            logging.error(
+                f"Errors occurred, discarding message {message.mid}", exc_info=e
+            )
+
+    def _parse_message(self, message: MQTTMessage) -> typing.Any:
+        decoded: str = message.payload.decode("utf-8")
+
+        if self.SCHEMA_FILE is not None:
+            content = json.loads(decoded)
+            fastavro.validate(content, fastavro.schema.load_schema(self.SCHEMA_FILE))
+            name = os.path.basename(self.SCHEMA_FILE)
+            logging.debug(f"Received message matches avro schema '{name}'")
+            return content
+
+        try:
+            # also parse single numeric values
+            # and the constants null, +/-Infinity, NoN
+            return json.loads(decoded)
+        except json.JSONDecodeError:
+            # string / datetime / other
+            return decoded
+
     @abstractmethod
-    def act(self, message: dict):
+    def act(self, content: typing.Any, message: MQTTMessage):
         raise NotImplementedError

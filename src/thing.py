@@ -72,7 +72,9 @@ class Thing:
         try:
 
             if "raw_data_storage" in message:
-                raw_data_storage = RawDataStorage.get_instance(message["raw_data_storage"])
+                raw_data_storage = RawDataStorage.get_instance(
+                    message["raw_data_storage"]
+                )
 
             return cls(
                 message["uuid"],
@@ -84,4 +86,6 @@ class Thing:
                 message["properties"],
             )
         except KeyError as e:
-            raise ValueError(f'Unable to get Thing instance from message "{message}"', e)
+            raise ValueError(
+                f'Unable to get Thing instance from message "{message}"', e
+            )

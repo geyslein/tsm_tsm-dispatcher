@@ -3,7 +3,7 @@ import os
 import psycopg2
 from psycopg2 import sql as psysql
 
-from AbstractAction import AbstractAction
+from AbstractAction import AbstractAction, MQTTMessage
 from thing import Thing
 
 
@@ -15,9 +15,9 @@ class CreateThingInDatabaseAction(AbstractAction):
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
         self.db = psycopg2.connect(database_settings.get('url'))
 
-    def act(self, message: dict):
+    def act(self, content: dict, message: MQTTMessage):
 
-        thing = Thing.get_instance(message)
+        thing = Thing.get_instance(content)
 
         # 1. Check, if there is already a database user for this project
         if not self.user_exists(thing):
