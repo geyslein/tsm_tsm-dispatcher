@@ -10,14 +10,14 @@ from AbstractAction import AbstractAction, MQTTMessage
 from tsm_datastore_lib.JournalEntry import JournalEntry
 from tsm_datastore_lib.SqlAlchemyDatastore import SqlAlchemyDatastore
 
-TOPIC_DELIMITER = '/'
+TOPIC_DELIMITER = "/"
 
 
 class MqttLoggingAction(AbstractAction):
     # The maximum number of datastore instances (database connections) to be held
     # @todo: Get it as optional command line parameter
     DATASTORE_CACHE_SIZE = 100
-    SCHEMA_FILE = './avro_schema_files/log_message.avsc'
+    SCHEMA_FILE = "./avro_schema_files/log_message.avsc"
 
     def __init__(self, root_topic, mqtt_broker, mqtt_user, mqtt_password, target_uri):
         super().__init__(root_topic, mqtt_broker, mqtt_user, mqtt_password)
@@ -34,10 +34,10 @@ class MqttLoggingAction(AbstractAction):
 
     def parse(self, content):
         return JournalEntry(
-            timestamp=content['timestamp'],
-            message=content['message'],
-            level=content['level'],
-            extra={}
+            timestamp=content["timestamp"],
+            message=content["message"],
+            level=content["level"],
+            extra={},
         )
 
     @lru_cache(maxsize=DATASTORE_CACHE_SIZE)

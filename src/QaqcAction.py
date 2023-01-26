@@ -9,14 +9,16 @@ from AbstractAction import AbstractAction
 
 class QaqcAction(AbstractAction):
 
-    SCHEMA_FILE = './avro_schema_files/data_parsed_event.avsc'
+    SCHEMA_FILE = "./avro_schema_files/data_parsed_event.avsc"
 
-    def __init__(self, topic, mqtt_broker, mqtt_user, mqtt_password, scheduler_settings: dict):
+    def __init__(
+        self, topic, mqtt_broker, mqtt_user, mqtt_password, scheduler_settings: dict
+    ):
 
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
         self.scheduler_settings = scheduler_settings
-        self.request = request.Request(scheduler_settings.get('url'), method="POST")
-        self.request.add_header('Content-Type', 'application/json')
+        self.request = request.Request(scheduler_settings.get("url"), method="POST")
+        self.request.add_header("Content-Type", "application/json")
 
     def act(self, content: dict, message: MQTTMessage):
         data = {

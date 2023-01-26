@@ -19,7 +19,7 @@ from datetime import datetime
 from tsm_datastore_lib.Observation import Observation
 from tsm_datastore_lib.SqlAlchemyDatastore import SqlAlchemyDatastore
 
-TOPIC_DELIMITER = '/'
+TOPIC_DELIMITER = "/"
 
 
 def campbell_cr6(payload: dict, origin: str) -> List[Observation]:
@@ -71,22 +71,22 @@ def ydoc_ml417(payload: dict, origin: str) -> List[Observation]:
     #   {"$ts":230116110002,"$msg":"WDT;pr2_1"},
     #   {"$ts":230116110002,"MINVi":3.74,"AVGVi":3.94,"AVGCi":116,"P1*":"0*T","P2":"0*T","P3":"0*T","P4":"0*T"},
     #   {}]}
-    if 'data/jsn' not in origin:
+    if "data/jsn" not in origin:
         return []
 
     # data = payload['data'][1]
     ret = []
-    for data in payload['data']:
+    for data in payload["data"]:
 
         try:
             ts = datetime.strptime(str(data["$ts"]), "%y%m%d%H%M%S")
-            ob0 = Observation(ts, data['MINVi'], origin, 0, header="MINVi")
-            ob1 = Observation(ts, data['AVGVi'], origin, 1, header="AVGCi")
-            ob2 = Observation(ts, data['AVGCi'], origin, 2, header="AVGCi")
-            ob3 = Observation(ts, data['P1*'], origin, 3, header="P1*")
-            ob4 = Observation(ts, data['P2'], origin, 4, header="P2")
-            ob5 = Observation(ts, data['P3'], origin, 5, header="P3")
-            ob6 = Observation(ts, data['P4'], origin, 6, header="P4")
+            ob0 = Observation(ts, data["MINVi"], origin, 0, header="MINVi")
+            ob1 = Observation(ts, data["AVGVi"], origin, 1, header="AVGCi")
+            ob2 = Observation(ts, data["AVGCi"], origin, 2, header="AVGCi")
+            ob3 = Observation(ts, data["P1*"], origin, 3, header="P1*")
+            ob4 = Observation(ts, data["P2"], origin, 4, header="P2")
+            ob5 = Observation(ts, data["P3"], origin, 5, header="P3")
+            ob6 = Observation(ts, data["P4"], origin, 6, header="P4")
             ret.extend([ob0, ob1, ob2, ob3, ob4, ob5, ob6])
         except KeyError as e:
             pass
@@ -94,9 +94,9 @@ def ydoc_ml417(payload: dict, origin: str) -> List[Observation]:
 
 
 def brightsky_dwd_api(payload: dict, origin: str) -> List[Observation]:
-    weather = payload['weather']
-    timestamp = weather.pop('timestamp')
-    source = payload['sources'][0]
+    weather = payload["weather"]
+    timestamp = weather.pop("timestamp")
+    source = payload["sources"][0]
 
     out = []
 
@@ -126,15 +126,15 @@ def scripted_dummy(payload: dict, origin: str):
             value=payload["sine"],
             position=0,
             origin=origin,
-            header="sine"
+            header="sine",
         ),
         Observation(
             timestamp=timestamp,
             value=payload["cosine"],
             position=1,
             origin=origin,
-            header="cosine"
-        )
+            header="cosine",
+        ),
     ]
 
 
@@ -177,7 +177,7 @@ class MqttDatastreamAction(AbstractAction):
                 c: RealDictCursor
                 c.execute(sql, {"username": mqtt_user})
                 mqtt_auth = c.fetchone()
-        
+
         if mqtt_auth is None:
             raise LookupError(
                 f"user {mqtt_user!r} is not present in authentication database"
@@ -188,14 +188,16 @@ class MqttDatastreamAction(AbstractAction):
         )
         return datastore
 
-    def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[[dict, str], List[Observation]]:
-        parser = datastore.sqla_thing.properties['default_parser']
+    def __get_parser(
+        self, datastore: SqlAlchemyDatastore
+    ) -> Callable[[dict, str], List[Observation]]:
+        parser = datastore.sqla_thing.properties["default_parser"]
 
-        if parser == 'campbell_cr6':
+        if parser == "campbell_cr6":
             return campbell_cr6
-        if parser == 'brightsky_dwd_api':
+        if parser == "brightsky_dwd_api":
             return brightsky_dwd_api
-        if parser == 'ydoc_ml417':
+        if parser == "ydoc_ml417":
             return ydoc_ml417
         if parser == "sine_dummy":
             return scripted_dummy
