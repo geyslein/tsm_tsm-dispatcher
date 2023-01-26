@@ -2,7 +2,6 @@ from __future__ import annotations
 import json
 import logging
 import os.path
-import sys
 import typing
 
 import fastavro
@@ -63,7 +62,7 @@ class AbstractAction(ABC):
                 f"Errors occurred, discarding message {message.mid}", exc_info=e
             )
 
-    def _parse_message(self, message: MQTTMessage):
+    def _parse_message(self, message: MQTTMessage) -> typing.Any:
         decoded: str = message.payload.decode("utf-8")
 
         if self.SCHEMA_FILE is not None:
@@ -82,5 +81,5 @@ class AbstractAction(ABC):
             return decoded
 
     @abstractmethod
-    def act(self, content: dict, message: MQTTMessage):
+    def act(self, content: typing.Any, message: MQTTMessage):
         raise NotImplementedError

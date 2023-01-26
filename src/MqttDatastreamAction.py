@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import typing
 from functools import lru_cache
 from typing import Dict, Callable, List
 
@@ -11,7 +12,7 @@ from paho.mqtt.client import MQTTMessage
 from AbstractAction import AbstractAction
 
 import psycopg2
-import psycopg2.extras
+from psycopg2.extras import RealDictCursor
 
 from datetime import datetime
 from tsm_datastore_lib.Observation import Observation
@@ -147,7 +148,7 @@ class MqttDatastreamAction(AbstractAction):
         self.target_uri = target_uri
         self.auth_db = psycopg2.connect(target_uri)
 
-    def act(self, content: dict, message: MQTTMessage):
+    def act(self, content: typing.Any, message: MQTTMessage):
         topic = message.topic
         origin = f"{self.mqtt_broker}/{topic}"
 
@@ -170,13 +171,19 @@ class MqttDatastreamAction(AbstractAction):
         mqtt_user = topic.split(TOPIC_DELIMITER)[1]
         sql = "select * from mqtt_auth.mqtt_user u where u.username = %(username)s"
         with self.auth_db:
-            with self.auth_db.cursor(
-                    cursor_factory=psycopg2.extras.RealDictCursor) as c:
+            with self.auth_db.cursor(cursor_factory=RealDictCursor) as c:
+                c: RealDictCursor
                 c.execute(sql, {"username": mqtt_user})
                 mqtt_auth = c.fetchone()
+        
+        if mqtt_auth is None:
+            raise LookupError(
+                f"user {mqtt_user!r} is not present in authentication database"
+            )
 
-        datastore = SqlAlchemyDatastore(self.target_uri, mqtt_auth["thing_uuid"],
-                                        mqtt_auth["db_schema"])
+        datastore = SqlAlchemyDatastore(
+            self.target_uri, mqtt_auth["thing_uuid"], mqtt_auth["db_schema"]
+        )
         return datastore
 
     def __get_parser(self, datastore: SqlAlchemyDatastore) -> Callable[[dict, str], List[Observation]]:
@@ -190,3 +197,5 @@ class MqttDatastreamAction(AbstractAction):
             return ydoc_ml417
         if parser == "sine_dummy":
             return scripted_dummy
+
+        raise NotImplementedError(f"parser {parser!r} not found.")
