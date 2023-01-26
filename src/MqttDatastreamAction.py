@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import logging
 import typing
 from functools import lru_cache
 from typing import Dict, Callable, List
@@ -160,8 +161,9 @@ class MqttDatastreamAction(AbstractAction):
         try:
             datastore.store_observations(observations)
             datastore.insert_commit_chunk()
-        except Exception as e:
+        except Exception:
             datastore.session.rollback()
+            raise
 
     @lru_cache(maxsize=DATASTORE_CACHE_SIZE)
     def __get_datastore_by_topic(self, topic):

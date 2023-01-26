@@ -23,10 +23,7 @@ class QaqcAction(AbstractAction):
             "thing_uuid": content["thing_uuid"],
             "target": content["db_uri"],
         }
-        try:
-            data = json.dumps(data)
-            data = data.encode()
-            r = request.urlopen(self.request, data=data)
-            resp = json.loads(r.read())
-        except Exception as e:
-            logging.error(f"{self.__class__.__name__}", exc_info=e)
+        data = json.dumps(data)
+        data = data.encode()
+        r = request.urlopen(self.request, data=data)
+        resp = json.loads(r.read())

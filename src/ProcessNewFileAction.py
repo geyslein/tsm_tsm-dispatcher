@@ -58,21 +58,16 @@ class ProcessNewFileAction(AbstractAction):
             "thing_uuid": thing_uuid
         }
 
-        try:
+        data = json.dumps(data)
+        data = data.encode()
+        r = request.urlopen(self.request, data=data)
+        resp = json.loads(r.read())
 
-            data = json.dumps(data)
-            data = data.encode()
-            r = request.urlopen(self.request, data=data)
-            resp = json.loads(r.read())
-
-            # add object tag with checkpoint and timestamp
-            # hint reuse tags object as the existing tags are overwritten otherweise
-            object_tags['transmitted_to_scheduler'] = datetime.now().isoformat()
-            # Add some information about the scheduler, when we have some useful data from it
-            object_tags['scheduled_job_id'] = '23'
-            # When using a real scheduler, this will not work anymore because its async...
-            object_tags['parser_output'] = resp.get('out')
-            self.minio.set_object_tags(bucket_name, filename, object_tags)
-
-        except Exception as e:
-            logging.error(f"{self.__class__.__name__}", exc_info=e)
+        # add object tag with checkpoint and timestamp
+        # hint reuse tags object as the existing tags are overwritten otherweise
+        object_tags['transmitted_to_scheduler'] = datetime.now().isoformat()
+        # Add some information about the scheduler, when we have some useful data from it
+        object_tags['scheduled_job_id'] = '23'
+        # When using a real scheduler, this will not work anymore because its async...
+        object_tags['parser_output'] = resp.get('out')
+        self.minio.set_object_tags(bucket_name, filename, object_tags)

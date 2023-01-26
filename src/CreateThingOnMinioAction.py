@@ -60,14 +60,10 @@ class CreateThingOnMinioAction(AbstractAction):
             try:
                 self.mcw.make_locked_bucket(bucket_name)
             except Exception as e:
-                raise ValueError(f'Unable to create bucket "{bucket_name}": {e}')
-        # set bucket retention config
+                raise ValueError(f'Unable to create bucket "{bucket_name}": {e}') from None
+
         self.mcw.set_bucket_100y_retention(bucket_name)
-
-        # enable bucket notifications
         self.mcw.enable_bucket_notification(bucket_name)
-
-        # set bucked tags
         self.mcw.set_bucket_tags(bucket_name, {
             'thing_uuid': thing.uuid,
             'thing_name': thing.name,
