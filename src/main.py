@@ -18,6 +18,7 @@ from MqttDatastreamAction import MqttDatastreamAction
 from MqttLoggingAction import MqttLoggingAction
 from QaqcAction import QaqcAction
 from MqttUserAction import MqttUserAction
+from CreateNewFrostInstanceAction import CreateNewFrostInstanceAction
 
 logger: logging.Logger = None
 
@@ -279,6 +280,29 @@ def run_create_mqtt_user_action_service(ctx, database_url):
             "url": database_url,
             # 'user': database_user,
             # 'pass': database_pass
+        },
+    )
+
+    logger.info(f"Setup ok, starting service '{ctx.command.name}'")
+    action.run_loop()
+
+
+@cli.command()
+@click.argument("database_url", type=str, envvar="DATABASE_URL")
+@click.pass_context
+def run_create_new_frost_server_service(ctx, database_url):
+    topic = ctx.parent.params["topic"]  # thing_created
+    mqtt_broker = ctx.parent.params["mqtt_broker"]
+    mqtt_user = ctx.parent.params["mqtt_user"]
+    mqtt_password = ctx.parent.params["mqtt_password"]
+
+    action = CreateNewFrostInstanceAction(
+        topic,
+        mqtt_broker,
+        mqtt_user,
+        mqtt_password,
+        database_settings={
+            "url": database_url,
         },
     )
 
