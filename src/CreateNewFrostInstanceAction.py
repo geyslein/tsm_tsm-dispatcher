@@ -16,7 +16,7 @@ class CreateNewFrostInstanceAction(AbstractAction):
 
     def create_xml_object(self, thing):
         schema = thing.database.username.lower()
-        tree = ET.parse("./tomcat/tomcat_context_template.xml")
+        tree = ET.parse("./CreateNewFrostInstanceAction/tomcat/tomcat_context_template.xml")
         root = tree.getroot()
         xml_string = ET.tostring(root,encoding="utf8", method="xml").decode()
         tomcat_context = xml_string.format(db_url=thing.database.url,
@@ -24,5 +24,5 @@ class CreateNewFrostInstanceAction(AbstractAction):
                                                username=thing.database.username,
                                                password=thing.database.password)
         xml_tree = ET.XML(tomcat_context)
-        with open(f"./tomcat/context_files/FROST-Server#{schema}.xml", "wb") as file:
+        with open(f"./CreateNewFrostInstanceAction/tomcat/context_files/FROST-Server#{schema}.xml", "wb") as file:
             file.write(ET.tostring(xml_tree))
