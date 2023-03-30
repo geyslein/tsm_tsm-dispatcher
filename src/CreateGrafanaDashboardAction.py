@@ -45,7 +45,7 @@ class CreateGrafanaDashboardAction(AbstractAction):
             try:
                 self.grafana.datasource.create_datasource(datasource)
             except Exception as e:
-                self.logger.warning(f"Cannot create datasource, returns exception\n'{e}'")
+                self.logger.warning(f"Cannot create datasource.\n'{e}'")
 
     def check_datasource_exists(self, thing):
         # check if datasource with project uuid exists
@@ -90,7 +90,7 @@ class CreateGrafanaDashboardAction(AbstractAction):
             try:
                 self.grafana.folder.create_folder(folder_title, folder_uid)
             except Exception as e:
-                self.logger.warning(f"Cannot create folder, returns exception\n'{e}")
+                self.logger.warning(f"Can't create folder.\n'{e}")
 
     def check_folder_exists(self, thing):
         # check if folder with project uuid exists
@@ -103,13 +103,13 @@ class CreateGrafanaDashboardAction(AbstractAction):
 
 
     def create_dashboard(self, thing, overwrite=True):
-        # create/update dashboard if it doesn't already exist or overwrite is True  
+        # create/update dashboard if it doesn't exist or overwrite is True  
         if not self.check_dashboard_exists(thing) or overwrite==True:
             dashboard = self.build_dashboard_dict(thing)
             try:
                 self.grafana.dashboard.update_dashboard(dashboard)
             except Exception as e:
-                self.logger.warning(f"Cannot create dashboard, returns exception\n'{e}")
+                self.logger.warning(f"Cannot create dashboard.\n'{e}")
 
     def check_dashboard_exists(self, thing):
         # check if dashboard with thing uuid exists
@@ -171,13 +171,17 @@ class CreateGrafanaDashboardAction(AbstractAction):
         # query all datastreams for thing from database
         datastreams = self.get_datastreams(thing)
         panels = []
-        # loop over index, create list of panel dictionaries to be used in dashboard dictionary
-        for index, (datastream_id, datastream_name) in enumerate(datastreams):
-            (x,y) = self.panel_position(index, width, height, ncol)
-            sql_query = f"SELECT result_time AS \"time\", result_number AS \"value\" FROM {db_user}.observation WHERE datastream_id = {datastream_id}"
+        # loop over datastreams, create list of panel dictionaries
+        # to be used in dashboard dictionary
+        for num, (ds_id, ds_name) in enumerate(datastreams):
+            (x,y) = self.panel_position(num, width, height, ncol)
+            sql_query = "SELECT result_time AS \"time\", result_number "\
+                        f"AS \"value\" FROM {db_user}.observation "\
+                        f"WHERE datastream_id = {ds_id}"
+            # append panel dictionary to panels list
             panels.append({
-                "id": index + 1,
-                "title": datastream_name,
+                "id": num + 1,
+                "title": ds_name,
                 "type": "timeseries",
                 "datasource": {
                     "type": "postgres",
@@ -204,11 +208,13 @@ class CreateGrafanaDashboardAction(AbstractAction):
         return panels
    
     def get_datastreams(self, thing):
+        user = thing.database.username.lower()
         with self.db:
             with self.db.cursor() as c:
                 c.execute(
-                    psysql.SQL("SELECT id, name FROM {user}.datastream").format(
-                        user=psysql.Identifier(thing.database.username.lower())
+                    psysql.SQL(
+                        "SELECT id, name FROM {user}.datastream"
+                        ).format(user=psysql.Identifier(user)
                     )
                 )
                 return c.fetchall()
