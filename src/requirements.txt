@@ -8,3 +8,4 @@ minio-cli-wrapper>=0.0.14
 --extra-index-url https://git.ufz.de/api/v4/projects/2886/packages/pypi/simple
 tsm-datastore-lib>=0.3.1
 PyYAML==6.0.0
+grafana-client==3.5.0
