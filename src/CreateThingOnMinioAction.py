@@ -50,7 +50,8 @@ class CreateThingOnMinioAction(AbstractAction):
                             "s3:PutObject",
                         ],
                         "Resource": [
-                            f"arn:aws:s3:::{thing.raw_data_storage.bucket_name}"
+                            f"arn:aws:s3:::{thing.raw_data_storage.bucket_name}",
+                            f"arn:aws:s3:::{thing.raw_data_storage.bucket_name}/*"
                         ],
                     }
                 ],
