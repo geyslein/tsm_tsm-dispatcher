@@ -16,16 +16,16 @@ class CreateGrafanaDashboardAction(AbstractAction):
     def __init__(
         self, topic, mqtt_broker, mqtt_user, mqtt_password,
         database_settings:dict, grafana_settings:dict):
-        
+
         super().__init__(topic, mqtt_broker, mqtt_user, mqtt_password)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.db = psycopg2.connect(database_settings.get('url'))
         self.grafana = GrafanaApi.from_url(
-                url=grafana_settings.get('url'), 
-                credential=(grafana_settings.get('user'), 
+                url=grafana_settings.get('url'),
+                credential=(grafana_settings.get('user'),
                             grafana_settings.get('password'))
                 )
-        
+
 
     def act(self, content: dict, message: MQTTMessage):
         thing = Thing.get_instance(content)
@@ -56,7 +56,7 @@ class CreateGrafanaDashboardAction(AbstractAction):
         except:
             return False
 
-    def new_datasource(thing):
+    def new_datasource(self, thing):
         # define datasource dictionary
         ds_uid = thing.project.uuid
         ds_name = thing.project.name
@@ -80,9 +80,9 @@ class CreateGrafanaDashboardAction(AbstractAction):
             }
         }
         return datasource
-        
 
-    def create_folder(self, thing):        
+
+    def create_folder(self, thing):
         # create folder if it doesn't exist
         folder_uid = thing.project.uuid
         folder_title = thing.project.name
@@ -103,7 +103,7 @@ class CreateGrafanaDashboardAction(AbstractAction):
 
 
     def create_dashboard(self, thing, overwrite=True):
-        # create/update dashboard if it doesn't exist or overwrite is True  
+        # create/update dashboard if it doesn't exist or overwrite is True
         if not self.check_dashboard_exists(thing) or overwrite==True:
             dashboard = self.build_dashboard_dict(thing)
             try:
@@ -113,7 +113,7 @@ class CreateGrafanaDashboardAction(AbstractAction):
 
     def check_dashboard_exists(self, thing):
         # check if dashboard with thing uuid exists
-        dashboard_uid = thing.uuid 
+        dashboard_uid = thing.uuid
         try:
             self.grafana.dashboard.get_dashboard(dashboard_uid)
             return True
@@ -129,7 +129,7 @@ class CreateGrafanaDashboardAction(AbstractAction):
         folder_title = thing.project.name
         # build dashboard dictionary
         dashboard = {
-            "dashboard":{    
+            "dashboard":{
                 "annotations": {
                     "list": []
                 },
@@ -143,7 +143,7 @@ class CreateGrafanaDashboardAction(AbstractAction):
                 "style": "dark",
                 "tags": [
                     folder_title,
-                    dashboard_title, 
+                    dashboard_title,
                     "TSM_automation"
                 ],
                 "templating": {
@@ -206,7 +206,7 @@ class CreateGrafanaDashboardAction(AbstractAction):
                 }]
             })
         return panels
-   
+
     def get_datastreams(self, thing):
         user = thing.database.username.lower()
         with self.db:
