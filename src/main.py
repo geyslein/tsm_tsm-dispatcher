@@ -18,6 +18,7 @@ from MqttDatastreamAction import MqttDatastreamAction
 from MqttLoggingAction import MqttLoggingAction
 from QaqcAction import QaqcAction
 from MqttUserAction import MqttUserAction
+from CreateNewFrostInstanceAction import CreateNewFrostInstanceAction
 from CreateGrafanaDashboardAction import CreateGrafanaDashboardAction
 
 logger: logging.Logger = None
@@ -310,49 +311,37 @@ def run_create_grafana_dashboard_service(
             "url": database_url
         },
         grafana_settings={
-         "url": grafana_url,
-         "user": grafana_user,
-         "password": grafana_password
+            "url": grafana_url,
+            "user": grafana_user,
+            "password": grafana_password
         }
     )
-    
+
     logger.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
 
 
-
 @cli.command()
 @click.argument("database_url", type=str, envvar="DATABASE_URL")
-@click.argument("grafana_url", type=str, envvar="GRAFANA_URL")
-@click.argument("grafana_user", type=str, envvar="GRAFANA_USER")
-@click.argument("grafana_password", type=str, envvar="GRAFANA_PASSWORD")
 @click.pass_context
-def run_create_grafana_dashboard_service(
-    ctx, database_url, grafana_url, grafana_user, grafana_password
-    ):
+def run_create_new_frost_server_service(ctx, database_url):
     topic = ctx.parent.params["topic"]  # thing_created
     mqtt_broker = ctx.parent.params["mqtt_broker"]
     mqtt_user = ctx.parent.params["mqtt_user"]
     mqtt_password = ctx.parent.params["mqtt_password"]
 
-    action = CreateGrafanaDashboardAction(
+    action = CreateNewFrostInstanceAction(
         topic,
         mqtt_broker,
         mqtt_user,
         mqtt_password,
         database_settings={
-            "url": database_url
+            "url": database_url,
         },
-        grafana_settings={
-         "url": grafana_url,
-         "user": grafana_user,
-         "password": grafana_password
-        }
     )
 
     logger.info(f"Setup ok, starting service '{ctx.command.name}'")
     action.run_loop()
-
 
 
 if __name__ == "__main__":

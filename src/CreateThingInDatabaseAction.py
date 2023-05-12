@@ -27,9 +27,12 @@ class CreateThingInDatabaseAction(AbstractAction):
             self.create_schema(thing)
             # 2.3 Deploy schema on new database
             self.deploy_ddl(thing)
+            # 2.4 Add frost views to created schema
+            self.create_frost_views(thing)
 
         # 3. Insert thing entity
         self.upsert_thing(thing)
+
 
     def create_user(self, thing):
         with self.db:
@@ -97,6 +100,21 @@ class CreateThingInDatabaseAction(AbstractAction):
                         user=username_identifier
                     )
                 )
+
+    def create_frost_views(self, thing):
+        sql = open(os.path.join(
+            os.path.dirname(__file__),
+            'CreateThingInDatabaseAction/frost_views.sql'
+        )).read()
+        with self.db:
+            with self.db.cursor() as c:
+                username_identifier = psysql.Identifier(thing.database.username.lower())
+                # Set search path for current session
+                c.execute(psysql.SQL("SET search_path TO {0}").format(
+                    username_identifier
+                ))
+                # create frost views
+                c.execute(sql)
 
     def upsert_thing(self, thing):
         sql = 'INSERT INTO thing (name, uuid, description, properties) VALUES (%s, %s, %s, ' \
