@@ -295,8 +295,8 @@ def run_create_mqtt_user_action_service(ctx, database_url):
 @click.argument("grafana_password", type=str, envvar="GRAFANA_PASSWORD")
 @click.pass_context
 def run_create_grafana_dashboard_service(
-        ctx, database_url, grafana_url, grafana_user, grafana_password
-):
+    ctx, database_url, grafana_url, grafana_user, grafana_password
+    ):
     topic = ctx.parent.params["topic"]  # thing_created
     mqtt_broker = ctx.parent.params["mqtt_broker"]
     mqtt_user = ctx.parent.params["mqtt_user"]

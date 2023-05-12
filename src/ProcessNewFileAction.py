@@ -38,7 +38,7 @@ class ProcessNewFileAction(AbstractAction):
     def act(self, content: dict, message: MQTTMessage):
 
         # skip all messages that are not a put event
-        if content["EventName"] != "s3:ObjectCreated:Put":
+        if content["EventName"] not in ("s3:ObjectCreated:Put", "s3:ObjectCreated:CompleteMultipartUpload"):
             return
 
         filename = content["Records"][0]["s3"]["object"]["key"]
