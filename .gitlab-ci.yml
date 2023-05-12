@@ -1,7 +1,5 @@
 stages:
   - freeze
-  - lint
-  - format
   - build
   - test
   - release
@@ -25,27 +23,10 @@ freeze-tag:
 default:
   image: python:3.9
 
-pylint:
-  stage: lint
-  before_script:
-    - cd src
-    - pip install pylint black
-  script:
-    - pylint Datastore Parser RawDataSource main.py --exit-zero
-
-black:
-  stage: format
-  before_script:
-    - cd src
-    - pip install pylint black
-  script:
-    - black .
-
 #unit-tests:
 #  stage: test
 #  before_script:
 #    - cd src
-#    - pip install pylint black
 #    - pip install -r requirements.txt
 #  script:
 #    - echo "Start unit tests!"
